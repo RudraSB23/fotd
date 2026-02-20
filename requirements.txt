@@ -1,0 +1,6 @@
+# Core dependencies
+pygame>=2.5.0
+
+# Windows only — curses is bundled on Linux/macOS
+windows-curses>=2.3.0; sys_platform == "win32"
+
