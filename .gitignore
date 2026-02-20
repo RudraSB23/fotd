@@ -1,0 +1,151 @@
+# ============================================================
+#  .gitignore — Fragments of the Lattice (FOTD) v1.3
+#  Tailored for: Python console game, PyCharm IDE
+# ============================================================
+
+
+# ------------------------------------------------------------
+# Python — Cache & Compiled Files
+# ------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+
+# ------------------------------------------------------------
+# Python — Virtual Environments
+# ------------------------------------------------------------
+venv/
+.venv/
+env/
+.env/
+ENV/
+.Python
+
+
+# ------------------------------------------------------------
+# Python — Distribution / Packaging / Build Artifacts
+# ------------------------------------------------------------
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+MANIFEST
+pip-wheel-metadata/
+*.whl
+
+
+# ------------------------------------------------------------
+# Python — Testing & Coverage
+# ------------------------------------------------------------
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+nosetests.xml
+
+
+# ------------------------------------------------------------
+# Python — Type Checking & Linting
+# ------------------------------------------------------------
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.pytype/
+
+
+# ------------------------------------------------------------
+# IDE — JetBrains PyCharm
+# ------------------------------------------------------------
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+
+# ------------------------------------------------------------
+# IDE — Visual Studio Code (in case of collaboration)
+# ------------------------------------------------------------
+.vscode/
+*.code-workspace
+
+
+# ------------------------------------------------------------
+# IDE — Vim / Emacs / Other Editors
+# ------------------------------------------------------------
+*.swp
+*.swo
+*~
+\#*\#
+.#*
+
+
+# ------------------------------------------------------------
+# OS — Windows
+# ------------------------------------------------------------
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+
+# OS — macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+
+# OS — Linux
+.directory
+.Trash-*
+
+
+# ------------------------------------------------------------
+# Logs & Temporary Files
+# ------------------------------------------------------------
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+logs/
+log/
+
+
+# ------------------------------------------------------------
+# Audio Files (binary assets — large, use Git LFS if needed)
+# ------------------------------------------------------------
+assets/sounds/*.mp3
+assets/sounds/*.wav
+assets/sounds/*.ogg
+assets/sounds/*.flac
+# Note: assets/sounds/.keep is preserved to track the folder
+
+
+# ------------------------------------------------------------
+# Game — Runtime / Generated Files
+# (saves.json is intentionally NOT ignored — it may be useful
+#  to track a default/template save state)
+# ------------------------------------------------------------
+# saves.json  ← uncomment to ignore save data entirely
+
+
+# ------------------------------------------------------------
+# Secrets & Environment Config
+# ------------------------------------------------------------
+.env
+.env.*
+!.env.example
+secrets.py
+config.local.py

@@ -1,0 +1,9 @@
+{
+    "player_name": "Unknown",
+    "identity_fragments": [],
+    "corruption_level": 6,
+    "stability": 2,
+    "npc_relationships": {},
+    "current_node_id": "intro",
+    "current_scene": "node0x2_ava_intro"
+}
