@@ -1,4 +1,4 @@
-# 🌐 Fragments of the Lattice
+# Fragments of the Lattice
 
 <div align="center">
 
