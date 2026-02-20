@@ -175,23 +175,12 @@ def print_typing(
 
     for idx, ch in enumerate(text):
         if not skip:
-            # Check for ESC (27) for Pause, or Enter (10, 13) / Space (32) to skip
+            # Check for Enter (10, 13) / Space (32) to skip
             try:
                 key = stdscr.getch()
-                if key == 27: # ESC
-                    from engine.ui_utils import show_pause_menu
-                    show_pause_menu(stdscr)
-                elif key in [10, 13, 32]:
+                if key in [10, 13, 32]:
                     skip = True
                     if sound: audio.stop_sound("typing.mp3")
-            except KeyboardInterrupt:
-                from engine.ui_utils import confirm_quit_menu
-                if confirm_quit_menu(stdscr):
-                    import sys
-                    sys.exit(0)
-                # Resume after canceling quit
-                stdscr.clear()
-                stdscr.refresh()
             except:
                 pass
 
@@ -279,20 +268,8 @@ def echo_line(text: str, seconds_per_char: float = 0.03, color: str = Colors.BOL
     stdscr.nodelay(True)
 
     for ch in text:
-        # Check for ESC (27) for Pause
         try:
             key = stdscr.getch()
-            if key == 27: # ESC
-                from engine.ui_utils import show_pause_menu
-                show_pause_menu(stdscr)
-        except KeyboardInterrupt:
-            from engine.ui_utils import confirm_quit_menu
-            if confirm_quit_menu(stdscr):
-                import sys
-                sys.exit(0)
-            # Resume after canceling quit
-            stdscr.clear()
-            stdscr.refresh()
         except:
             pass
 

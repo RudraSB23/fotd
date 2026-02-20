@@ -149,3 +149,9 @@ assets/sounds/*.flac
 !.env.example
 secrets.py
 config.local.py
+
+
+# ------------------------------------------------------------
+# Developer Notes (local only — not for version control)
+# ------------------------------------------------------------
+DEVNOTES.txt

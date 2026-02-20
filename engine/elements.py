@@ -66,29 +66,17 @@ class ChoiceMenu:
             
             stdscr.refresh()
 
-            try:
-                key = stdscr.getch()
-                if key == 27: # ESC
-                    from engine.ui_utils import show_pause_menu
-                    show_pause_menu(stdscr)
-                elif key == curses.KEY_UP:
-                    self.selected_index = (self.selected_index - 1) % len(self.choices)
-                elif key == curses.KEY_DOWN:
-                    self.selected_index = (self.selected_index + 1) % len(self.choices)
-                elif key in [10, 13]:
-                    audio.play_sound(random.choice(["beep.mp3", "static.mp3"]))
-                    # After selection, move cursor to the line after the menu
-                    final_y = min(max_h - 1, menu_start_y + len(self.choices))
-                    stdscr.move(final_y, 0)
-                    return self.selected_index
-            except KeyboardInterrupt:
-                from engine.ui_utils import confirm_quit_menu
-                if confirm_quit_menu(stdscr):
-                    import sys
-                    sys.exit(0)
-                # Resume after canceling quit
-                stdscr.clear()
-                stdscr.refresh()
+            key = stdscr.getch()
+            if key == curses.KEY_UP:
+                self.selected_index = (self.selected_index - 1) % len(self.choices)
+            elif key == curses.KEY_DOWN:
+                self.selected_index = (self.selected_index + 1) % len(self.choices)
+            elif key in [10, 13]:
+                audio.play_sound(random.choice(["beep.mp3", "static.mp3"]))
+                # After selection, move cursor to the line after the menu
+                final_y = min(max_h - 1, menu_start_y + len(self.choices))
+                stdscr.move(final_y, 0)
+                return self.selected_index
 
 class TimedPuzzle:
     def __init__(self, target_word: str, difficulty: int = 1, time_limit: float = 10.0, auto_start: bool = False):
@@ -233,22 +221,11 @@ class TimedPuzzle:
             # Input Handling
             try:
                 key = stdscr.getch()
-                if key == 27: # ESC
-                    from engine.ui_utils import show_pause_menu
-                    show_pause_menu(stdscr)
-                elif key != -1:
+                if key != -1 and key != 27:  # ignore ESC
                     if key in [8, 127, curses.KEY_BACKSPACE]:
                         self.input_text = self.input_text[:-1]
                     elif 32 <= key <= 126:
                         self.input_text += chr(key)
-            except KeyboardInterrupt:
-                from engine.ui_utils import confirm_quit_menu
-                if confirm_quit_menu(stdscr):
-                    import sys
-                    sys.exit(0)
-                # Resume after canceling quit
-                stdscr.clear()
-                stdscr.refresh()
             except:
                 pass
             
@@ -422,28 +399,16 @@ class MessageBox:
                     current_line_y += 1
                 
                 stdscr.refresh()
-                try:
-                    key = stdscr.getch()
-                    if key == 27: # ESC
-                        from engine.ui_utils import show_pause_menu
-                        show_pause_menu(stdscr)
-                    elif key == curses.KEY_UP:
-                        self.selected_index = (self.selected_index - 1) % len(self.choices)
-                    elif key == curses.KEY_DOWN:
-                        self.selected_index = (self.selected_index + 1) % len(self.choices)
-                    elif key in [10, 13]:
-                        audio.play_sound(random.choice(["beep.mp3", "static.mp3"]))
-                        from engine.console_effects import clear_terminal
-                        clear_terminal(stdscr)
-                        return self.selected_index
-                except KeyboardInterrupt:
-                    from engine.ui_utils import confirm_quit_menu
-                    if confirm_quit_menu(stdscr):
-                        import sys
-                        sys.exit(0)
-                    # Resume after canceling quit
-                    stdscr.clear()
-                    stdscr.refresh()
+                key = stdscr.getch()
+                if key == curses.KEY_UP:
+                    self.selected_index = (self.selected_index - 1) % len(self.choices)
+                elif key == curses.KEY_DOWN:
+                    self.selected_index = (self.selected_index + 1) % len(self.choices)
+                elif key in [10, 13]:
+                    audio.play_sound(random.choice(["beep.mp3", "static.mp3"]))
+                    from engine.console_effects import clear_terminal
+                    clear_terminal(stdscr)
+                    return self.selected_index
             else:
                 # Info Mode
                 stdscr.refresh()

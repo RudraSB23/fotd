@@ -190,19 +190,11 @@ def run_game(stdscr):
 
 
 def main_curses(stdscr):
-    while True:
-        try:
-            run_game(stdscr)
-            break
-        except KeyboardInterrupt:
-            from engine.ui_utils import confirm_quit_menu
-            if confirm_quit_menu(stdscr):
-                import sys
-                sys.exit(0)
-            # If they cancel, we just continue the loop. 
-            # Note: This will restart the title screen loop.
-            from engine.console_effects import clear_terminal
-            clear_terminal(stdscr)
+    try:
+        run_game(stdscr)
+    except KeyboardInterrupt:
+        import sys
+        sys.exit(0)
 
 
 if __name__ == "__main__":
