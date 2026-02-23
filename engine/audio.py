@@ -1,7 +1,7 @@
 import os
 import pygame
 import threading
-from . import config
+from .config import config
 
 
 class AudioManager:

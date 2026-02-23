@@ -53,13 +53,17 @@ class ChoiceMenu:
             # Display choices
             for idx, choice in enumerate(self.choices):
                 if menu_start_y + idx < max_h:
-                    # Only use glitchy arrows if corruption is high (e.g. corruption >= 5)
-                    if self.corruption >= 5 and idx == self.selected_index:
-                        glitch_arrow = random.choice(arrow_choices) if random.random() < 0.2 else "→ "
-                    else:
-                        glitch_arrow = "→ " if idx == self.selected_index else "  "
-
-                    prefix = glitch_arrow
+                    # CORRUPTION EFFECTS:
+                    prefix = "→ " if idx == self.selected_index else "  "
+                    
+                    if self.corruption >= 5 and idx == self.selected_index and random.random() < 0.2:
+                        # Glitchy arrow
+                        glitch_arrows = ["→ ", "» ", "▓ ", "█ ", "▒ "]
+                        prefix = random.choice(glitch_arrows)
+                    
+                    # Note: shuffling choices is complex to implement here without changing selection logic
+                    # keeping it simple for now as per base requirement.
+                    
                     color = curses_colors.ansi_1m32 if idx == self.selected_index else curses.color_pair(0)
                     stdscr.addstr(menu_start_y + idx, 0, prefix, color)
                     stdscr.addstr(menu_start_y + idx, len(prefix), choice)
@@ -79,10 +83,12 @@ class ChoiceMenu:
                 return self.selected_index
 
 class TimedPuzzle:
-    def __init__(self, target_word: str, difficulty: int = 1, time_limit: float = 10.0, auto_start: bool = False):
+    def __init__(self, target_word: str, difficulty: int = 1, time_limit: float = 10.0, auto_start: bool = False, game_state=None):
         self.target_word = target_word.upper()
         self.difficulty = difficulty
-        self.time_limit = time_limit
+        self.game_state = game_state
+        bonus_time = game_state.stability // 4 if game_state else 0  # +2s at stability 8
+        self.time_limit = time_limit + bonus_time
         self.auto_start = auto_start
         self.scrambled_word = self._scramble(self.target_word, difficulty)
         self.input_text = ""

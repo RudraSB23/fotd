@@ -1,0 +1,62 @@
+{
+  "version": "1.1.0",
+  "timestamp": 1771874922.060791,
+  "scene_id": "node0x2_ava_intro",
+  "state": {
+    "player_name": "Rudra",
+    "identity_fragments": [],
+    "corruption_level": 3,
+    "stability": 5,
+    "npc_relationships": {},
+    "current_node_id": "intro",
+    "history": [
+      {
+        "type": "corruption",
+        "delta": 1,
+        "old": 0,
+        "new": 1,
+        "timestamp": 1771873588.8836021
+      },
+      {
+        "type": "corruption",
+        "delta": 1,
+        "old": 1,
+        "new": 2,
+        "timestamp": 1771873595.3107216
+      },
+      {
+        "type": "stability",
+        "delta": -1,
+        "old": 3,
+        "new": 2,
+        "timestamp": 1771873596.5610752
+      },
+      {
+        "type": "corruption",
+        "delta": 1,
+        "old": 2,
+        "new": 3,
+        "timestamp": 1771873603.851718
+      },
+      {
+        "type": "stability",
+        "delta": 2,
+        "old": 2,
+        "new": 4,
+        "timestamp": 1771873607.6699274
+      },
+      {
+        "type": "stability",
+        "delta": 1,
+        "old": 4,
+        "new": 5,
+        "timestamp": 1771873614.7665935
+      }
+    ],
+    "puzzles_solved": 0,
+    "puzzles_failed": 0,
+    "nodes_visited": 0,
+    "playtime_seconds": 0.0
+  },
+  "checksum": 4291579175730248950
+}

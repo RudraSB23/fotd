@@ -2,18 +2,19 @@ import os
 import getpass
 import time
 import curses
+import random
 
-from pygame.time import delay
-
-from engine import config
+from engine.config import config
 from engine.assets import load_ascii_art, load_multiple_ascii_art
 from engine.console_effects import print_colored, print_typing, clear_terminal, Colors, print_centered
 from engine.elements import ChoiceMenu, MessageBox
 from engine.save_manager import SaveManager
-from engine.state_manager import *
+from engine.state_manager import GameState
 from engine.audio import AudioManager
 from engine.menu import GrubMenu
-from dialogue import *
+from scenes.registry import get_scene
+from dialogue import onboarding, initiating_sequence, fake_error_flood, display_success_message, memory_load_prompt, corruption_flash, system_reboot
+
 
 audio = AudioManager()
 
@@ -89,41 +90,22 @@ def run_game(stdscr):
             box = MessageBox(msg, title="SYSTEM SCAN", border_color=Colors.BOLD_CYAN)
             box.display(stdscr, duration=2.0)
             
-            save_data = SaveManager.load_game()
+            save_data = SaveManager.load_game(slot=1)
             if save_data:
-                game_state = SaveManager.restore_state(save_data)
-                scene_name = save_data.get("current_scene")
+                game_state = GameState.from_snapshot(save_data["state"])
+                current_scene_id = save_data["scene_id"]
                 
-                import dialogue
-                scene_func = getattr(dialogue, str(scene_name), None)
-                
-                if scene_func and callable(scene_func):
-                    # Success
-                    success_msg = [
-                        ("FRAGMENT RESTORED", Colors.BOLD_GREEN),
-                        "",
-                        f"Subject: {game_state.player_name}",
-                        f"Location: {scene_name}",
-                        "",
-                        ("Re-aligning consciousness...", Colors.BOLD_WHITE)
-                    ]
-                    box = MessageBox(success_msg, title="SYNC SUCCESS", border_color=Colors.BOLD_GREEN)
-                    box.display(stdscr, duration=2.0)
-                    
-                    # Start the game from the saved scene
-                    scene_func(stdscr, game_state)
-                    return
-                else:
-                    error_msg = [
-                        ("LINK CORRUPTION", Colors.BOLD_RED),
-                        "",
-                        f"Could not resolve scene: {scene_name}",
-                        "Data is unreadable.",
-                        "",
-                        ("Returning to primary node...", Colors.BOLD_WHITE)
-                    ]
-                    box = MessageBox(error_msg, title="NODE FAILURE", border_color=Colors.BOLD_RED)
-                    box.display(stdscr)
+                success_msg = [
+                    ("FRAGMENT RESTORED", Colors.BOLD_GREEN),
+                    "",
+                    f"Subject: {game_state.player_name}",
+                    f"Location: {current_scene_id}",
+                    "",
+                    ("Re-aligning consciousness...", Colors.BOLD_WHITE)
+                ]
+                box = MessageBox(success_msg, title="SYNC SUCCESS", border_color=Colors.BOLD_GREEN)
+                box.display(stdscr, duration=2.0)
+                break # Start scene loop
             else:
                 error_msg = [
                     ("CRITICAL ERROR", Colors.BOLD_RED),
@@ -153,54 +135,111 @@ def run_game(stdscr):
             if confirm_choice == 0: # Continue
                 SaveManager.delete_save() # Clear old data
                 game_state = GameState() # Reset local state
-                break # Break loop and start game
+                
+                # Full onboarding for New Game
+                time.sleep(1)
+                onboarding(stdscr)
+                time.sleep(1)
+                initiating_sequence(stdscr)
+                fake_error_flood(stdscr, random.randint(40,50))
+                clear_terminal(stdscr)
+                display_success_message(stdscr)
+                memory_load_prompt(stdscr)
+
+                corrupt_ascii = []
+                for i in range(1,4):
+                    corrupt_ascii.append(load_ascii_art(f"intro_glitch_{i}.txt"))
+                corruption_flash(stdscr, corrupt_ascii)
+
+                time.sleep(2)
+                if config.TEST and config.TEST != 'system_reboot':
+                    player_name = 'TEST'
+                else:
+                    player_name = system_reboot(stdscr, game_state)
+                
+                game_state.player_name = player_name
+                current_scene_id = "scene1_identity_sequence"
+                break # Start scene loop
             else:
                 clear_terminal(stdscr)
                 continue # Loop back to menu
 
-    time.sleep(1)
-    onboarding(stdscr)
-    time.sleep(1)
-    initiating_sequence(stdscr)
-    fake_error_flood(stdscr, random.randint(40,50))
+    # --- Scene Progression Loop ---
+    while current_scene_id:
+        try:
+            from scenes.registry import get_scene
+            scene = get_scene(current_scene_id)
+            
+            # Execute the scene and get the ID of the next one
+            next_scene_id = scene.run(stdscr, game_state)
+            
+            # Update current scene ID for next iteration
+            current_scene_id = next_scene_id
+            
+            # Auto-save progress if we are transitioning to a new scene
+            if current_scene_id:
+                SaveManager.save_game(game_state, current_scene_id, slot=1)
+                
+        except Exception as e:
+            from engine.logger import logger
+            logger.error(f"Failed to execute scene {current_scene_id}: {e}")
+            break
+
+    # --- Game Summary / End Phase ---
     clear_terminal(stdscr)
-    display_success_message(stdscr)
-    memory_load_prompt(stdscr)
-
-    corrupt_ascii = []
-    for i in range(1,4):
-        corrupt_ascii.append(load_ascii_art(f"intro_glitch_{i}.txt"))
-    corruption_flash(stdscr, corrupt_ascii)
-
-    time.sleep(2)
-    if config.TEST and config.TEST != 'system_reboot':
-        player_name = 'TEST'
-    else:
-        player_name = system_reboot(stdscr, game_state)
+    from engine.end_screen import EndScreen
+    summary = EndScreen(game_state)
+    summary.display(stdscr)
     
-    game_state.player_name = player_name
-
-    # start scene
-    scene1_identity_sequence(stdscr, game_state)
-
-    clear_terminal(stdscr)
     print_centered("[ TO BE CONTINUED... ]", Colors.BOLD_MAGENTA, stdscr=stdscr)
     time.sleep(3)
 
 
 
 def main_curses(stdscr):
+    from engine.ui_utils import ensure_min_terminal
+    from engine.logger import logger
+    from dialogue import startup_screen, logo_animation
+    from engine.audio import AudioManager
+
+    time.sleep(1)
+
     try:
+        # Start atmospheric static immediately
+        audio = AudioManager()
+        audio.play_music("vhs_static.mp3", loop=True, volume=0.8)
+
+        # 0. Show company logo animation
+        if not config.SKIP_STARTUP:
+            logo_animation(stdscr)
+
+        # 1. Calibrate terminal
+        ensure_min_terminal(stdscr)
+        
+        # 2. Show startup screen inside curses
+        if not config.SKIP_STARTUP:
+            startup_screen(stdscr, 15)
+            time.sleep(2)
+            
+        # 3. Run the game
         run_game(stdscr)
     except KeyboardInterrupt:
-        import sys
-        sys.exit(0)
+        logger.info("User interrupted")
+    except Exception as e:
+        logger.exception("Fatal error")
+        try:
+            os.system("reset")
+        except:
+            pass
+        print(f"Lattice crashed. Check logs/fotd.log\nError: {e}")
 
 
 if __name__ == "__main__":
+    from engine.logger import setup_logging
+    setup_logging()
+    
     if config.TEST:
         config.SKIP_STARTUP = True
-    if not config.SKIP_STARTUP:
-        startup_screen(15)
-        time.sleep(2)
+        
     curses.wrapper(main_curses)
+

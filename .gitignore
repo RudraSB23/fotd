@@ -124,12 +124,12 @@ log/
 
 
 # ------------------------------------------------------------
-# Audio Files (binary assets — large, use Git LFS if needed)
+# Audio Files (binary assets) — Included for GitHub Push
 # ------------------------------------------------------------
-assets/sounds/*.mp3
-assets/sounds/*.wav
-assets/sounds/*.ogg
-assets/sounds/*.flac
+# assets/sounds/*.mp3
+# assets/sounds/*.wav
+# assets/sounds/*.ogg
+# assets/sounds/*.flac
 # Note: assets/sounds/.keep is preserved to track the folder
 
 
@@ -155,3 +155,4 @@ config.local.py
 # Developer Notes (local only — not for version control)
 # ------------------------------------------------------------
 DEVNOTES.txt
+.md

@@ -83,6 +83,15 @@ colors = [
 def get_colors():
     return colors
 
+_curses_colors_instance = None
+
+def get_curses_color(ansi_color: str):
+    """Convert ANSI string to curses attribute."""
+    global _curses_colors_instance
+    if _curses_colors_instance is None:
+        _curses_colors_instance = CursesColors()
+    return map_ansi_to_curses(ansi_color, _curses_colors_instance)
+
 def map_ansi_to_curses(ansi_color: str, curses_colors: CursesColors):
     if ansi_color is None or ansi_color == Colors.RESET:
         return curses.A_NORMAL
@@ -175,12 +184,13 @@ def print_typing(
 
     for idx, ch in enumerate(text):
         if not skip:
-            # Check for Enter (10, 13) / Space (32) to skip
+            # Skip detection: Enter (10, 13), Space (32), 's' keyboard key
             try:
                 key = stdscr.getch()
-                if key in [10, 13, 32]:
+                if key in [10, 13, 32, ord('s')]:
                     skip = True
-                    if sound: audio.stop_sound("typing.mp3")
+                    if sound:
+                        audio.stop_sound("typing.mp3")
             except:
                 pass
 
@@ -195,6 +205,7 @@ def print_typing(
         stdscr.refresh()
         if not skip:
             time.sleep(max(0.0, seconds_per_char))
+
 
     # Reset nodelay, stop sound, and flush input buffer
     stdscr.nodelay(False)

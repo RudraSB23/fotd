@@ -143,16 +143,195 @@ def intro_systems_rebooting_bar(
 # GAME SEQUENCE
 # ----------------------------------------------------------------------------------------
 
-def startup_screen(duration: float = 5.0):
+def logo_animation(stdscr):
+    """
+    OPTIMIZED: Multi-stage logo animation using dirty rects.
+    Hidden -> Noise -> Locked -> Decay -> Vanished.
+    """
+    final_color_attr = get_curses_color(Colors.BOLD_WHITE)
+    
+    logo_text = load_ascii_art("logo.txt")
+    if not logo_text:
+        return
+
+    # Precompute ALL static data
+    h, w = stdscr.getmaxyx()
+    raw_lines = logo_text.splitlines()
+    lines = [line.rstrip() for line in raw_lines]
+    num_lines = len(lines)
+    start_y = (h - num_lines) // 2
+    
+    # Precompute character positions ONCE
+    chars = []
+    max_line_len = 0
+    for r, line in enumerate(lines):
+        line_len = len(line)
+        max_line_len = max(max_line_len, line_len)
+        for c, char in enumerate(line):
+            if not char.isspace():
+                chars.append({
+                    'r': start_y + r,
+                    'c_base': c,
+                    'line_len': line_len,
+                    'char': char
+                })
+    
+    total_chars = len(chars)
+    if total_chars == 0:
+        return
+    
+    # Pre-shuffle reveal/decay order
+    reveal_order = chars[:]
+    decay_order = chars[:]
+    random.shuffle(reveal_order)
+    random.shuffle(decay_order)
+    
+    glitch_chars = "@#$%&*+▒░▓!/|X0"
+    glitch_colors = [Colors.BOLD_BLACK, Colors.WHITE, Colors.BOLD_WHITE, 
+                    Colors.BOLD_GREEN, Colors.BOLD_BLUE, Colors.BOLD_RED, 
+                    Colors.BOLD_YELLOW, Colors.BLACK]
+    
+    reveal_step = max(1, total_chars // 15)
+    decay_step = max(1, total_chars // 12)
+    
+    # State: 0=hidden, 1=noise, 2=locked, 3=decay
+    for char in chars:
+        char['state'] = 0
+    
+    # --- PHASE 1: APPEAR (Hidden -> Noise) ---
+    reveal_idx = 0
+    while reveal_idx < total_chars:
+        stdscr.clear()
+        
+        # Reveal batch to noise
+        for _ in range(reveal_step):
+            if reveal_idx < total_chars:
+                ch = reveal_order[reveal_idx]
+                ch['state'] = 1
+                reveal_idx += 1
+        
+        # Render ALL noise chars
+        for char in chars:
+            if char['state'] == 1:
+                x = max((w - char['line_len']) // 2, 0) + char['c_base']
+                try:
+                    glitch_ch = random.choice(glitch_chars)
+                    glitch_attr = get_curses_color(random.choice(glitch_colors))
+                    stdscr.addstr(char['r'], x, glitch_ch, glitch_attr)
+                except:
+                    pass
+        
+        stdscr.refresh()
+        time.sleep(0.05)
+    
+    # --- PHASE 2: LOCK (Noise -> Logo) ---
+    reveal_idx = 0
+    while reveal_idx < total_chars:
+        stdscr.clear()
+        
+        # Lock batch to final logo
+        for _ in range(reveal_step):
+            if reveal_idx < total_chars:
+                ch = reveal_order[reveal_idx]
+                ch['state'] = 2
+                reveal_idx += 1
+        
+        # Render: locked (final) + remaining noise
+        for char in chars:
+            x = max((w - char['line_len']) // 2, 0) + char['c_base']
+            if char['state'] == 2:
+                stdscr.addstr(char['r'], x, char['char'], final_color_attr)
+            elif char['state'] == 1:
+                try:
+                    glitch_ch = random.choice(glitch_chars)
+                    glitch_attr = get_curses_color(random.choice(glitch_colors))
+                    stdscr.addstr(char['r'], x, glitch_ch, glitch_attr)
+                except:
+                    pass
+        
+        stdscr.refresh()
+        time.sleep(0.04)
+    
+    # PHASE 3: PEAK HOLD
+    stdscr.clear()
+    for char in chars:
+        x = max((w - char['line_len']) // 2, 0) + char['c_base']
+        stdscr.addstr(char['r'], x, char['char'], final_color_attr)
+    stdscr.refresh()
+    time.sleep(2.0)
+    
+    # --- PHASE 4: DECAY (Logo -> Noise) ---
+    decay_idx = 0
+    while decay_idx < total_chars:
+        stdscr.clear()
+        
+        # Decay batch back to noise
+        for _ in range(decay_step):
+            if decay_idx < total_chars:
+                ch = decay_order[decay_idx]
+                ch['state'] = 3
+                decay_idx += 1
+        
+        # Render: remaining logo + new decay noise
+        for char in chars:
+            x = max((w - char['line_len']) // 2, 0) + char['c_base']
+            if char['state'] == 2:
+                stdscr.addstr(char['r'], x, char['char'], final_color_attr)
+            elif char['state'] == 3:
+                try:
+                    glitch_ch = random.choice(glitch_chars)
+                    glitch_attr = get_curses_color(random.choice(glitch_colors))
+                    stdscr.addstr(char['r'], x, glitch_ch, glitch_attr)
+                except:
+                    pass
+        
+        stdscr.refresh()
+        time.sleep(0.04)
+    
+    # --- PHASE 5: VANISH (Noise -> Gone) ---
+    decay_idx = 0
+    while decay_idx < total_chars:
+        stdscr.clear()
+        
+        # Vanish batch
+        for _ in range(decay_step):
+            if decay_idx < total_chars:
+                decay_order[decay_idx]['state'] = 4
+                decay_idx += 1
+        
+        # Render remaining noise
+        for char in chars:
+            if char['state'] == 3:
+                x = max((w - char['line_len']) // 2, 0) + char['c_base']
+                try:
+                    glitch_ch = random.choice(glitch_chars)
+                    glitch_attr = get_curses_color(random.choice(glitch_colors))
+                    stdscr.addstr(char['r'], x, glitch_ch, glitch_attr)
+                except:
+                    pass
+        
+        stdscr.refresh()
+        time.sleep(0.05)
+    
+    stdscr.clear()
+    stdscr.refresh()
+    time.sleep(1)
+
+
+def startup_screen(stdscr, duration: float = 10.0):
     ascii_file = "loading.txt"
     ascii_text = load_ascii_art(ascii_file)
 
-    clear_main_terminal()
+    stdscr.clear()
+    stdscr.refresh()
 
     audio.play_music("noname.mp3")
 
     if ascii_text is None:
-        normal_print_colored("LOADING ASSETS...\n", ANSIColors.BOLD_GREEN, center=True)
+        h, w = stdscr.getmaxyx()
+        text = "LOADING ASSETS..."
+        stdscr.addstr(h//2, (w-len(text))//2, text, get_curses_color(Colors.BOLD_GREEN))
+        stdscr.refresh()
         time.sleep(duration)
         return
 
@@ -170,45 +349,66 @@ def startup_screen(duration: float = 5.0):
     ]
 
     lines = ascii_text.splitlines()
-    second_last_idx = 4
-    last_idx = 5
-    dot_states = ["", "██╗", "██╗██╗", "██╗██╗██╗"]
-    dot_spacing = ["", "   ", "      ", "         "]
-    tip_index = 0
-    tip_padding = 1
     start_time = time.time()
+    last_tip_time = 0
+    tip = random.choice(tips)
+    
+    while True:
+        elapsed = time.time() - start_time
+        progress = min(elapsed / duration, 1.0)
+        
+        if elapsed - last_tip_time > 3.0:
+            tip = random.choice(tips)
+            last_tip_time = elapsed
+            
+        stdscr.clear()
+        h, w = stdscr.getmaxyx()
+        
+        # ASCII + Progress Bar + Spacing + Tip
+        bar_width = 40
+        total_lines = len(lines) + 6
+        top_padding = max((h - total_lines) // 2, 0)
+        
+        # 1. Print ASCII
+        for idx, line in enumerate(lines):
+            try:
+                stdscr.addstr(top_padding + idx, max((w - len(line)) // 2, 0), line, get_curses_color(Colors.CYAN))
+            except:
+                pass
+        
+        # 2. Progress Bar
+        bar_y = top_padding + len(lines) + 2
+        filled = int(progress * bar_width)
+        bar_str = "█" * filled + "░" * (bar_width - filled)
+        percent_str = f" {int(progress * 100)}%"
+        full_bar = f"[{bar_str}]{percent_str}"
+        
+        try:
+            stdscr.addstr(bar_y, max((w - len(full_bar)) // 2, 0), full_bar, get_curses_color(Colors.BOLD_CYAN))
+        except:
+            pass
+            
+        # 3. Tip
 
-    while time.time() - start_time < duration:
-        tip = random.choice(tips)
+        try:
+            tip_y = bar_y + 4
+            stdscr.addstr(tip_y, max((w - len(tip)) // 2, 0), tip, get_curses_color(Colors.BOLD_GREEN))
+        except:
+            pass
+            
+        stdscr.refresh()
+        
+        if progress >= 1.0:
+            break
+            
+        time.sleep(0.05)
 
-        for dot_state in dot_states:
-            os.system("cls" if os.name == "nt" else "clear")
-
-            cols, rows = shutil.get_terminal_size((80, 24))
-            dot_padding = dot_spacing[dot_states.index(dot_state)]
-            total_lines = len(lines) + 2 + tip_padding
-            top_padding = max((rows - total_lines) // 2, 0)
-            normal_print_colored("\n" * top_padding)
-
-            # print ascii with dots
-            for idx, line in enumerate(lines):
-                if idx == second_last_idx:
-                    normal_print_colored(f"{line}{dot_state}", color=ANSIColors.CYAN, center=True)
-                elif idx == last_idx:
-                    dot_bottom = dot_state.replace("██╗", "╚═╝")
-                    normal_print_colored(f"{line}{dot_bottom}", color=ANSIColors.CYAN, center=True)
-                else:
-                    normal_print_colored(f"{line}{dot_padding}", color=ANSIColors.CYAN, center=True)
-
-            print("\n" * tip_padding)
-            normal_print_colored(tip, ANSIColors.BOLD_GREEN, center=True)
-
-            time.sleep(0.75)
-
-        tip_index += 1
-
-    clear_main_terminal()
+    time.sleep(1) # Brief pause at 100%
+    stdscr.clear()
+    stdscr.refresh()
     audio.stop_music(fadeout_ms=1500)
+
+
 
 
 def onboarding(stdscr):

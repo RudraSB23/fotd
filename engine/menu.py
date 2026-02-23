@@ -145,3 +145,20 @@ class GrubMenu:
             
             # small delay to prevent CPU hogging
             time.sleep(0.01)
+
+
+
+from engine.elements import ChoiceMenu
+from engine.state_manager import GameState
+
+class PauseMenu(ChoiceMenu):
+    def __init__(self, game_state: GameState):
+        stats = [
+            f"Resume",
+            f"Stability: {game_state.stability}/10",
+            f"Corruption: {game_state.corruption_level}/10",
+            f"Fragments: {len(game_state.identity_fragments)}",
+            "Save Game",
+            "Quit"
+        ]
+        super().__init__("PAUSED", stats, game_state.corruption_level)
