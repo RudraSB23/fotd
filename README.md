@@ -7,19 +7,25 @@
 ![Genre](https://img.shields.io/badge/Genre-Terminal%20Horror%20%7C%20Narrative-8B0000?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-In%20Development-yellow?style=for-the-badge)
 
-**A terminal-based narrative horror game where memory, corruption, and identity collide.**
+**Terminal-based psychological horror where you debug your own collapsing mind.**
 
-_You are the Caretaker. Something is watching._
+> _You awaken in a dead terminal. A presence whispers your name in the static._
 
 </div>
 
 ---
 
-## 🖥️ About the Game
+## 🎮 About
 
-**Fragments of the Lattice** is a text-driven horror experience rendered entirely in your terminal. You are the **Caretaker** — an entity awakened inside _The Lattice_, a decaying digital archive of human consciousness. As you navigate fractured memory nodes, a presence known as **The Echo** trails your every keystroke.
+**Fragments of the Lattice** traps you inside **The Lattice** – a decaying digital archive containing humanity's forgotten consciousness. As the **Caretaker**, you stabilize fractured memory nodes while **The Echo** – a corrupted fragment of yourself – fights to unravel everything.
 
-The game blends atmospheric ASCII art, real-time glitch effects, branching narrative choices, and timed decryption puzzles into a single, immersive terminal session. Every decision you make tips the balance between **Stability** and **Corruption** — and your ending is determined by where that needle lands.
+**Core Loop:**
+
+```
+Navigate → Choose (Stability or Corruption) → Solve Stabilization Puzzle → Echo Interferes → Repeat
+```
+
+Every decision shifts your **Stability ↔ Corruption** balance, unlocking 3 distinct endings.
 
 > [!NOTE]
 > **🚧 Work in Progress** — This game is actively being developed. Nodes 0x1 and 0x2 are playable; Nodes 0x3 through 0x9 are planned or partially scripted. Expect rough edges, missing content, and frequent updates.
@@ -28,17 +34,17 @@ The game blends atmospheric ASCII art, real-time glitch effects, branching narra
 
 ## ✨ Features
 
-- **Branching Narrative** — Choices shape your corruption/stability stats and unlock different dialogue paths and endings.
-- **Real-Time Glitch Engine** — Live text distortion, screen-wide corruption flashes, and character-level leetspeak scrambling.
-- **Timed Stabilization Puzzles** — Decrypt corrupted strings under pressure before the static consumes the node.
-- **ASCII Art Sequences** — Full-screen art for the title, intro, and key story moments.
-- **Atmospheric Soundtrack** — Background music and layered sound effects powered by `pygame.mixer`, preloaded asynchronously.
-- **Persistent Save System** — JSON-based save/load with in-terminal feedback messages.
-- **Multiple Endings** — Three distinct endings determined by your final Stability vs. Corruption score.
+- **🧠 Branching Narrative** – Corruption/Stability choices shape dialogue, relationships, endings
+- **💥 Real-Time Glitch Engine** – Live text corruption, screen-melting effects, leetspeak scrambling
+- **⏱️ Timed Puzzles** – Decrypt strings under pressure or lose the node to static
+- **🎨 Cinematic ASCII** – Animated logo, full-screen art sequences
+- **🔊 Immersive Audio** – 80s synth soundtrack + layered SFX (pygame-powered)
+- **💾 Smart Saves** – Multi-slot JSON with scene restoration + integrity checks
+- **🎮 Terminal Native** – Curses rendering, F11 fullscreen calibration
 
 ---
 
-## 🖼️ Preview
+## 📱 Preview
 
 ```
     ███████╗██████╗░░█████╗░░██████╗░███╗░░░███╗███████╗███╗░░██╗████████╗░██████╗  ░█████╗░███████╗
@@ -60,156 +66,110 @@ The game blends atmospheric ASCII art, real-time glitch effects, branching narra
                                           New Game
 
 
+
 ```
 
-> _The screen glitches. A red cursor blinks. THE LATTICE SEES YOU._
+> _Screen glitches. Red cursor blinks. **THE LATTICE SEES YOU.**_
 
 ---
 
-## ⚙️ Requirements
+## ⚙️ Quick Start
 
-| Dependency | Version  | Purpose                    |
-| ---------- | -------- | -------------------------- |
-| `Python`   | `3.11+`  | Core runtime               |
-| `pygame`   | `2.x`    | Audio management           |
-| `curses`   | Built-in | Terminal rendering & input |
+### Prerequisites
 
-> **Windows note:** `curses` is not included in the standard library on Windows. Install the `windows-curses` package.
+- **Python 3.11+**
+- **Windows**: `pip install windows-curses pygame`
 
----
-
-## 📦 Installation
-
-### 1. Clone the Repository
+### Install & Play
 
 ```bash
-git clone https://github.com/your-username/fragments-of-the-lattice.git
-cd fragments-of-the-lattice
-```
-
-### 2. Create a Virtual Environment _(recommended)_
-
-```bash
-python -m venv venv
-
-# Windows
-venv\Scripts\activate
-
-# macOS / Linux
-source venv/bin/activate
-```
-
-### 3. Install Dependencies
-
-```bash
+git clone https://github.com/RudraSB23/fotd.git
+cd fotd
 pip install -r requirements.txt
-```
-
----
-
-## 🚀 Running the Game
-
-```bash
 python main.py
 ```
 
-The game will launch in your terminal. For the best experience, use a **full-screen terminal** with a dark background and a monospace font (e.g., `Cascadia Code`, `Fira Mono`, `Consolas`).
+**Pro Tip:** F11 fullscreen + dark theme + monospace font (`Cascadia Code`).
 
 ---
 
 ## 🎮 Controls
 
-| Key         | Action                         |
-| ----------- | ------------------------------ |
-| `↑` / `↓`   | Navigate menu / choice options |
-| `Enter`     | Confirm selection              |
-| `Backspace` | Delete character (puzzles)     |
-| `ESC`       | Open pause menu                |
-| `Ctrl+C`    | Trigger quit confirmation      |
-
-> **During Timed Puzzles:** Type the un-corrupted target word into the active input field before the countdown reaches zero.
+| Key    | Action           |
+| ------ | ---------------- |
+| ↑↓     | Navigate choices |
+| ⏎      | Select           |
+| ⌫      | Puzzle backspace |
+| Esc    | Pause menu       |
+| Ctrl+C | Quit             |
 
 ---
 
-## 🗂️ Project Structure
+## 🧠 Mechanics Deep Dive
+
+### Stability ↔ Corruption
 
 ```
-fragments-of-the-lattice/
-├── main.py        # Game entry point
-├── dialogue.py    # Story & scenes
-├── saves.json     # Auto-generated save file
+Choices & puzzles shift your balance:
+Corruption ≥5  → Glitchy menus
+Corruption ≥8  → Screen meltdown
+Stability ≥7   → Hidden paths
+```
+
+### Stabilization Puzzles
+
+```
+Decrypt leetspeak under timer pressure:
+C0RRUP710N → Type "CORRUPTION" in 10s
+Fail → Node corrupts → Echo grows stronger
+```
+
+### The Echo
+
+A corrupted fragment of **yourself** that:
+
+- Whispers during choices
+- Alters puzzles at high corruption
+- Manifests in endings
+
+---
+
+## 🗂️ Repo Structure
+
+```
+fotd/
+├── main.py           # Entry point
+├── scenes/           # Modular narrative (0x1 Corridor, 0x2 Ava)
+├── engine/           # Core systems
+│   ├── state_manager.py
+│   ├── save_manager.py
+│   ├── console_effects.py
+│   └── elements.py
 ├── assets/
-│   ├── ascii_art/ # Title & intro art
-│   ├── images/    # Logo
-│   └── sounds/    # Music & sound effects
-└── engine/        # Game engine (internal)
+│   ├── ascii_art/
+│   └── sounds/       # 80s synth + glitch SFX
+└── saves/            # Auto-save slots
 ```
 
 ---
 
-## 🧠 Game Mechanics
+## 🎵 Soundtrack Credits
 
-### Stability vs. Corruption
-
-Every choice you make adjusts one of two core stats. Certain dialogue options, puzzle outcomes, and NPC interactions will push you toward **order** or **chaos**.
-
-| Threshold        | Effect                                          |
-| ---------------- | ----------------------------------------------- |
-| `Corruption ≥ 5` | Choice menus begin glitching (corrupted arrows) |
-| `Corruption ≥ 8` | Forced Glitch Mode activates                    |
-| `Stability ≥ 7`  | Unlock hidden content (e.g., Identity Mirror)   |
-
-### Narrative Nodes
-
-The story progresses through numbered **Nodes**, each representing a fractured memory location:
-
-- **Node 0x1 — The Corridor:** Your first encounter with The Echo.
-- **Node 0x2 — Fragment Alpha (Ava):** A data-fragment NPC who teaches you stabilization.
-- **Node 0x3+ — The Archive & Beyond:** _(In development)_
-
-### Endings
-
-Your final stats determine which of three endings you receive:
-
-| Ending          | Condition        |
-| --------------- | ---------------- |
-| **Restoration** | `Stability ≥ 8`  |
-| **Collapse**    | `Corruption ≥ 8` |
-| **Integration** | Balanced stats   |
-
----
-
-## 🤝 Contributing
-
-Contributions, bug reports, and narrative suggestions are welcome!
-
-1. Fork the repository
-2. Create a new branch: `git checkout -b feature/your-feature-name`
-3. Make your changes and commit: `git commit -m "feat: describe your change"`
-4. Push to your branch: `git push origin feature/your-feature-name`
-5. Open a Pull Request
-
-Please keep code modular and consistent with the existing engine architecture. New narrative content should be added to `dialogue.py` as named scene functions.
+- **Boot Theme**: [Melancholia](https://www.youtube.com/watch?v=u9WsZoceais)
+- **Main Menu Theme**: [Fragments of the Lattice](https://www.youtube.com/watch?v=1YG0QCl9USI)
 
 ---
 
 ## 📜 License
 
-This project is currently unlicensed. All rights reserved by the author. Contact the repository owner for usage inquiries.
-
----
-
-## 🎖️ Credits
-
-- **Design, Writing & Engineering** — Rudra Singh Bhardwaj
-- **Audio** — Various artists (see `assets/sounds/` for individual tracks)
-- **Rendering Engine** — Built on Python's `curses` standard library
-- **Audio Engine** — Powered by [`pygame`](https://www.pygame.org/)
+Unlicensed prototype. Contact for commercial inquiries.
 
 ---
 
 <div align="center">
 
-_"The Lattice is collapsing. Stabilize the nodes — or let the static take you."_
+[![GitHub](https://img.shields.io/badge/GitHub-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/RudraSB23/fotd)
+
+"Stabilize the nodes... or let the static claim you."\_
 
 </div>
