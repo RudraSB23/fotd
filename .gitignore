@@ -146,7 +146,7 @@ log/
 # ------------------------------------------------------------
 .env
 .env.*
-!.env.example
+!.env.example   
 secrets.py
 config.local.py
 
