@@ -143,7 +143,7 @@ def intro_systems_rebooting_bar(
 # GAME SEQUENCE
 # ----------------------------------------------------------------------------------------
 
-def glitch_ascii_animation(stdscr, content, hold_time: float = 2.0, color: str = Colors.BOLD_WHITE):
+def glitch_ascii_animation(stdscr, content, hold_time: float = 2.0, color: str = Colors.BOLD_WHITE, wait_for_key: bool = False):
     """
     Generic Multi-stage glitch animation for ASCII art using dirty rects.
     Supports single color (via filename) or multi-color (via list of (text, color) tuples).
@@ -159,17 +159,22 @@ def glitch_ascii_animation(stdscr, content, hold_time: float = 2.0, color: str =
     h, w = stdscr.getmaxyx()
     
     all_lines = []
-    for text, block_color in blocks:
+    for block in blocks:
+        # Support both (text, color) and (text, color, delay)
+        text = block[0]
+        block_color = block[1]
+        block_delay = block[2] if len(block) > 2 else 0
+        
         block_lines = text.splitlines()
         for line in block_lines:
-            all_lines.append((line.rstrip(), get_curses_color(block_color)))
+            all_lines.append((line.rstrip(), get_curses_color(block_color), block_delay))
             
     num_lines = len(all_lines)
     start_y = (h - num_lines) // 2
     
     # Precompute character positions ONCE
     chars = []
-    for r, (line, color_attr) in enumerate(all_lines):
+    for r, (line, color_attr, block_delay) in enumerate(all_lines):
         line_len = len(line)
         for c, char in enumerate(line):
             if not char.isspace():
@@ -178,7 +183,8 @@ def glitch_ascii_animation(stdscr, content, hold_time: float = 2.0, color: str =
                     'c_base': c,
                     'line_len': line_len,
                     'char': char,
-                    'color_attr': color_attr
+                    'color_attr': color_attr,
+                    'delay': block_delay
                 })
     
     total_chars = len(chars)
@@ -186,7 +192,11 @@ def glitch_ascii_animation(stdscr, content, hold_time: float = 2.0, color: str =
         return
     
     # Pre-shuffle reveal/decay order
-    reveal_order = chars[:]
+    # ONLY reveal chars with delay == 0 in the initial phase
+    immediate_chars = [ch for ch in chars if ch['delay'] == 0]
+    delayed_chars = [ch for ch in chars if ch['delay'] > 0]
+    
+    reveal_order = immediate_chars[:]
     decay_order = chars[:]
     random.shuffle(reveal_order)
     random.shuffle(decay_order)
@@ -196,52 +206,73 @@ def glitch_ascii_animation(stdscr, content, hold_time: float = 2.0, color: str =
                     Colors.BOLD_GREEN, Colors.BOLD_BLUE, Colors.BOLD_RED, 
                     Colors.BOLD_YELLOW, Colors.BLACK]
     
-    reveal_step = max(1, total_chars // 15)
+    reveal_step = max(1, len(immediate_chars) // 15) if immediate_chars else 1
     decay_step = max(1, total_chars // 12)
     
     # State: 0=hidden, 1=noise, 2=locked, 3=decay
     for char in chars:
         char['state'] = 0
     
-    # --- PHASE 1: APPEAR (Hidden -> Noise) ---
-    reveal_idx = 0
-    while reveal_idx < total_chars:
-        stdscr.clear()
-        
-        # Reveal batch to noise
-        for _ in range(reveal_step):
-            if reveal_idx < total_chars:
-                ch = reveal_order[reveal_idx]
-                ch['state'] = 1
-                reveal_idx += 1
-        
-        # Render ALL noise chars
-        for char in chars:
-            if char['state'] == 1:
+    # --- PHASE 1 & 2: APPEAR & LOCK (for immediate chars) ---
+    if immediate_chars:
+        # Phase 1: noise
+        reveal_idx = 0
+        while reveal_idx < len(immediate_chars):
+            stdscr.clear()
+            for _ in range(reveal_step):
+                if reveal_idx < len(immediate_chars):
+                    reveal_order[reveal_idx]['state'] = 1
+                    reveal_idx += 1
+            for char in chars:
+                if char['state'] == 1:
+                    x = max((w - char['line_len']) // 2, 0) + char['c_base']
+                    try:
+                        glitch_ch = random.choice(glitch_chars)
+                        glitch_attr = get_curses_color(random.choice(glitch_colors))
+                        stdscr.addstr(char['r'], x, glitch_ch, glitch_attr)
+                    except: pass
+            stdscr.refresh()
+            time.sleep(0.05)
+            
+        # Phase 2: lock
+        reveal_idx = 0
+        while reveal_idx < len(immediate_chars):
+            stdscr.clear()
+            for _ in range(reveal_step):
+                if reveal_idx < len(immediate_chars):
+                    reveal_order[reveal_idx]['state'] = 2
+                    reveal_idx += 1
+            for char in chars:
                 x = max((w - char['line_len']) // 2, 0) + char['c_base']
-                try:
-                    glitch_ch = random.choice(glitch_chars)
-                    glitch_attr = get_curses_color(random.choice(glitch_colors))
-                    stdscr.addstr(char['r'], x, glitch_ch, glitch_attr)
-                except:
-                    pass
-        
-        stdscr.refresh()
-        time.sleep(0.05)
+                if char['state'] == 2:
+                    stdscr.addstr(char['r'], x, char['char'], char['color_attr'])
+                elif char['state'] == 1:
+                    try:
+                        glitch_ch = random.choice(glitch_chars)
+                        glitch_attr = get_curses_color(random.choice(glitch_colors))
+                        stdscr.addstr(char['r'], x, glitch_ch, glitch_attr)
+                    except: pass
+            stdscr.refresh()
+            time.sleep(0.04)
     
-    # --- PHASE 2: LOCK (Noise -> Logo) ---
-    reveal_idx = 0
-    while reveal_idx < total_chars:
+    # PHASE 3: PEAK HOLD & DELAYED REVEAL
+    start_hold = time.time()
+    while True:
         stdscr.clear()
+        elapsed = time.time() - start_hold
         
-        # Lock batch to final logo
-        for _ in range(reveal_step):
-            if reveal_idx < total_chars:
-                ch = reveal_order[reveal_idx]
-                ch['state'] = 2
-                reveal_idx += 1
-        
-        # Render: locked (final) + remaining noise
+        # Check if any delayed chars should start appearing
+        any_active_noise = False
+        for ch in delayed_chars:
+            if elapsed >= ch['delay'] and ch['state'] == 0:
+                ch['state'] = 1 # Start noise
+            
+            if ch['state'] == 1:
+                any_active_noise = True
+                # Move towards locked state over time (simple logic)
+                if elapsed >= ch['delay'] + 0.5:
+                    ch['state'] = 2
+                    
         for char in chars:
             x = max((w - char['line_len']) // 2, 0) + char['c_base']
             if char['state'] == 2:
@@ -251,19 +282,24 @@ def glitch_ascii_animation(stdscr, content, hold_time: float = 2.0, color: str =
                     glitch_ch = random.choice(glitch_chars)
                     glitch_attr = get_curses_color(random.choice(glitch_colors))
                     stdscr.addstr(char['r'], x, glitch_ch, glitch_attr)
-                except:
-                    pass
-        
+                except: pass
+                
         stdscr.refresh()
-        time.sleep(0.04)
-    
-    # PHASE 3: PEAK HOLD
-    stdscr.clear()
-    for char in chars:
-        x = max((w - char['line_len']) // 2, 0) + char['c_base']
-        stdscr.addstr(char['r'], x, char['char'], char['color_attr'])
-    stdscr.refresh()
-    time.sleep(hold_time)
+        
+        # Condition to exit Hold phase
+        if wait_for_key:
+            # If we are waiting for a key, only allow output once all delayed segments are locked
+            all_locked = all(ch['state'] == 2 for ch in chars)
+            if all_locked:
+                stdscr.nodelay(False)
+                stdscr.getch()
+                stdscr.nodelay(True)
+                break
+        else:
+            if elapsed >= hold_time:
+                break
+        
+        time.sleep(0.05)
     
     # --- PHASE 4: DECAY (Logo -> Noise) ---
     decay_idx = 0

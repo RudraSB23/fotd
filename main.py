@@ -335,19 +335,25 @@ def main_curses(stdscr):
             
             disclaimer_ascii = load_ascii_art("disclaimer.txt")
             disclaimer_text = (
-                "\n\n\n\nA very small percentage of individuals may experience epileptic seizures\n"
-                "or blackouts when exposed to certain light patterns or flashing lights.\n"
-                "This game contains sequences of bright, rapidly flashing colors and \n"
-                "glitch effects.\n\n"
+                "\n\n\n\nSome individuals may experience seizures or loss of consciousness\n"
+                "when exposed to certain light patterns or flashing lights.\n"
+                "This game contains bright visuals, rapidly flashing colors, and\n"
+                "glitch effects that may trigger such reactions.\n\n"
+                "If you have a history of epilepsy, photosensitivity, or seizures,\n"
+                "consult a medical professional before playing and stop immediately\n"
+                "if you feel dizzy, disoriented, or unwell.\n\n"
                 "Player discretion is strongly advised."
             )
             
-            # Pass as a list of (text, color) blocks
+            prompt_text = "\n\n\nPRESS [ENTER] TO CONTINUE"
+
+            # Pass as a list of (text, color, delay) blocks
             glitch_blocks = [
-                (disclaimer_ascii, Colors.BOLD_RED),
-                (disclaimer_text, Colors.WHITE)
+                (disclaimer_ascii, Colors.BOLD_RED, 0),
+                (disclaimer_text, Colors.WHITE, 0),
+                (prompt_text, Colors.BOLD_MAGENTA, 4.0) # Reveal 4 seconds later
             ]
-            glitch_ascii_animation(stdscr, glitch_blocks, hold_time=10.0)
+            glitch_ascii_animation(stdscr, glitch_blocks, wait_for_key=True)
         
         # 2. Show startup screen inside curses
         if not config.SKIP_STARTUP:
