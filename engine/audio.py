@@ -66,6 +66,11 @@ class AudioManager:
             print(f"[WARN] Music file not found: {path}")
             return
 
+        if self.current_track == path and pygame.mixer.music.get_busy():
+            # If the same track is currently playing, just update volume and return
+            pygame.mixer.music.set_volume(volume)
+            return
+
         try:
             pygame.mixer.music.load(path)
             pygame.mixer.music.set_volume(volume)

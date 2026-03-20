@@ -54,3 +54,10 @@ class SaveManager:
         path = os.path.join(SAVES_DIR, f"slot_{slot}.json")
         if os.path.exists(path):
             os.remove(path)
+
+    @staticmethod
+    def get_all_saves(max_slots: int = 6) -> list[Optional[Dict]]:
+        saves = []
+        for i in range(1, max_slots + 1):
+            saves.append(SaveManager.load_game(slot=i))
+        return saves

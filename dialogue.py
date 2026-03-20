@@ -143,37 +143,42 @@ def intro_systems_rebooting_bar(
 # GAME SEQUENCE
 # ----------------------------------------------------------------------------------------
 
-def logo_animation(stdscr):
+def glitch_ascii_animation(stdscr, content, hold_time: float = 2.0, color: str = Colors.BOLD_WHITE):
     """
-    OPTIMIZED: Multi-stage logo animation using dirty rects.
-    Hidden -> Noise -> Locked -> Decay -> Vanished.
+    Generic Multi-stage glitch animation for ASCII art using dirty rects.
+    Supports single color (via filename) or multi-color (via list of (text, color) tuples).
     """
-    final_color_attr = get_curses_color(Colors.BOLD_WHITE)
-    
-    logo_text = load_ascii_art("logo.txt")
-    if not logo_text:
-        return
+    if isinstance(content, str):
+        logo_text = load_ascii_art(content)
+        if not logo_text: return
+        blocks = [(logo_text, color)]
+    else:
+        blocks = content
 
     # Precompute ALL static data
     h, w = stdscr.getmaxyx()
-    raw_lines = logo_text.splitlines()
-    lines = [line.rstrip() for line in raw_lines]
-    num_lines = len(lines)
+    
+    all_lines = []
+    for text, block_color in blocks:
+        block_lines = text.splitlines()
+        for line in block_lines:
+            all_lines.append((line.rstrip(), get_curses_color(block_color)))
+            
+    num_lines = len(all_lines)
     start_y = (h - num_lines) // 2
     
     # Precompute character positions ONCE
     chars = []
-    max_line_len = 0
-    for r, line in enumerate(lines):
+    for r, (line, color_attr) in enumerate(all_lines):
         line_len = len(line)
-        max_line_len = max(max_line_len, line_len)
         for c, char in enumerate(line):
             if not char.isspace():
                 chars.append({
                     'r': start_y + r,
                     'c_base': c,
                     'line_len': line_len,
-                    'char': char
+                    'char': char,
+                    'color_attr': color_attr
                 })
     
     total_chars = len(chars)
@@ -240,7 +245,7 @@ def logo_animation(stdscr):
         for char in chars:
             x = max((w - char['line_len']) // 2, 0) + char['c_base']
             if char['state'] == 2:
-                stdscr.addstr(char['r'], x, char['char'], final_color_attr)
+                stdscr.addstr(char['r'], x, char['char'], char['color_attr'])
             elif char['state'] == 1:
                 try:
                     glitch_ch = random.choice(glitch_chars)
@@ -256,9 +261,9 @@ def logo_animation(stdscr):
     stdscr.clear()
     for char in chars:
         x = max((w - char['line_len']) // 2, 0) + char['c_base']
-        stdscr.addstr(char['r'], x, char['char'], final_color_attr)
+        stdscr.addstr(char['r'], x, char['char'], char['color_attr'])
     stdscr.refresh()
-    time.sleep(2.0)
+    time.sleep(hold_time)
     
     # --- PHASE 4: DECAY (Logo -> Noise) ---
     decay_idx = 0
@@ -276,7 +281,7 @@ def logo_animation(stdscr):
         for char in chars:
             x = max((w - char['line_len']) // 2, 0) + char['c_base']
             if char['state'] == 2:
-                stdscr.addstr(char['r'], x, char['char'], final_color_attr)
+                stdscr.addstr(char['r'], x, char['char'], char['color_attr'])
             elif char['state'] == 3:
                 try:
                     glitch_ch = random.choice(glitch_chars)
@@ -316,6 +321,9 @@ def logo_animation(stdscr):
     stdscr.clear()
     stdscr.refresh()
     time.sleep(1)
+
+def logo_animation(stdscr):
+    glitch_ascii_animation(stdscr, "logo.txt", hold_time=2.0, color=Colors.BOLD_WHITE)
 
 
 def startup_screen(stdscr, duration: float = 10.0):

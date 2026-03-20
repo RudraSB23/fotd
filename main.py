@@ -60,7 +60,10 @@ def run_game(stdscr):
         else:
             print_colored(f"\n[DEBUG ERROR] Scene '{config.TEST}' not found in dialogue.py!", Colors.BOLD_RED, stdscr=stdscr)
             time.sleep(2)
-
+    current_scene_id = None
+    game_state = None
+    current_slot = 1
+    
     while True:
         # load title
         title = load_ascii_art("title.txt")
@@ -69,7 +72,7 @@ def run_game(stdscr):
 
         if title:
             menu = GrubMenu(
-                ["Continue", "New Game"],
+                ["Continue", "New Game", "Settings"],
                 title=title,
                 title_menu_spacing=5,
                 vertical_offset=2,
@@ -78,91 +81,200 @@ def run_game(stdscr):
             choice_index = menu.display(stdscr)
         else:
             print_typing("FRAGMENTS OF THE LATTICE", 0.03, Colors.GREEN, stdscr=stdscr)
-            menu = GrubMenu(["Continue", "New Game"], title=None)
+            menu = GrubMenu(["Continue", "New Game", "Settings"], title=None)
             choice_index = menu.display(stdscr)
 
-        audio.stop_music()
         clear_terminal(stdscr)
         
         if choice_index == 0: # Continue
-            # Simulation/Loading of save data
-            msg = [("SEARCHING FOR LOCAL FRAGMENTS...", Colors.BOLD_CYAN)]
-            box = MessageBox(msg, title="SYSTEM SCAN", border_color=Colors.BOLD_CYAN)
-            box.display(stdscr, duration=2.0)
+            from dialogue import intro_systems_rebooting_bar
+            from scenes.registry import get_scene_name
             
-            save_data = SaveManager.load_game(slot=1)
-            if save_data:
-                game_state = GameState.from_snapshot(save_data["state"])
-                current_scene_id = save_data["scene_id"]
-                
-                success_msg = [
-                    ("FRAGMENT RESTORED", Colors.BOLD_GREEN),
-                    "",
-                    f"Subject: {game_state.player_name}",
-                    f"Location: {current_scene_id}",
-                    "",
-                    ("Re-aligning consciousness...", Colors.BOLD_WHITE)
-                ]
-                box = MessageBox(success_msg, title="SYNC SUCCESS", border_color=Colors.BOLD_GREEN)
-                box.display(stdscr, duration=2.0)
-                break # Start scene loop
-            else:
+            saves = SaveManager.get_all_saves(6)
+            choices = []
+            has_saves = False
+            for i, save in enumerate(saves, 1):
+                if save:
+                    has_saves = True
+                    state = save["state"]
+                    scene_name = get_scene_name(save['scene_id'])
+                    choices.append(f"Slot {i}: {state.get('player_name', 'Unknown')} [{scene_name}]")
+                else:
+                    choices.append(f"Slot {i}: [ EMPTY ]")
+            choices.append("Cancel")
+
+            if not has_saves:
                 error_msg = [
-                    ("CRITICAL ERROR", Colors.BOLD_RED),
+                    ("CRITICAL ERROR: NO DATA FOUND", Colors.BOLD_RED),
                     "",
                     "No encrypted save data detected.",
-                    "Local buffer is empty.",
+                    "All local buffers are empty.",
                     "",
                     ("Returning to primary node...", Colors.BOLD_WHITE)
                 ]
                 error_box = MessageBox(error_msg, title="NODE FAILURE", border_color=Colors.BOLD_RED)
-                error_box.display(stdscr)
+                error_box.display(stdscr, duration=2.5)
+                clear_terminal(stdscr)
+                continue
+                
+            title_lines = [
+                " SELECT THREAD TO RESTORE ",
+                "=========================="
+            ]
+            slot_menu = GrubMenu(choices, title=title_lines, title_menu_spacing=3, vertical_offset=2, glitchify=True)
+            slot_idx = slot_menu.display(stdscr)
+            if slot_idx == 6: # Cancel
+                clear_terminal(stdscr)
+                continue
+            
+            save_data = saves[slot_idx]
+            if not save_data:
+                error_msg = [("ERROR: SLOT EMPTY", Colors.BOLD_RED), "No data in selected slot."]
+                MessageBox(error_msg, title="NODE FAILURE", border_color=Colors.BOLD_RED).display(stdscr, duration=1.5)
+                clear_terminal(stdscr)
+                continue
+                
+            current_slot = slot_idx + 1
+
+            audio.stop_music(fadeout_ms=1000)
+            
+            # Loading cinematic
+            clear_terminal(stdscr)
+            msg = [(f"RECOVERING FRAGMENTS FROM SLOT {current_slot}...", Colors.BOLD_CYAN)]
+            box = MessageBox(msg, title="SYSTEM SCAN", border_color=Colors.BOLD_CYAN)
+            box.display(stdscr, duration=1.0)
             
             clear_terminal(stdscr)
-            continue # Loop back to menu
+            intro_systems_rebooting_bar(stdscr, duration=1.5, length=40, color=Colors.BOLD_CYAN)
+            clear_terminal(stdscr)
+            
+            game_state = GameState.from_snapshot(save_data["state"])
+            current_scene_id = save_data["scene_id"]
+            scene_name = get_scene_name(current_scene_id)
+            
+            success_msg = [
+                (f"FRAGMENT RESTORED: {scene_name}", Colors.BOLD_GREEN),
+                "",
+                f"Subject: {game_state.player_name}",
+                f"Stability: {game_state.stability} | Puzzles: {game_state.puzzles_solved}",
+                "",
+                ("Re-aligning consciousness...", Colors.BOLD_WHITE)
+            ]
+            box = MessageBox(success_msg, title="SYNC SUCCESS", border_color=Colors.BOLD_GREEN)
+            box.display(stdscr, duration=2.5)
+            audio.stop_music()
+            break # Start scene loop
             
         elif choice_index == 1: # New Game
-            confirm_msg = [
-                "This will overwrite any volatile data.",
-                "",
-                ("INITIATE NEURAL LINK?", Colors.BOLD_MAGENTA)
-            ]
-            confirm_box = MessageBox(confirm_msg, title="LINK ESTABLISHMENT", 
-                                     choices=["Continue", "Cancel"],
-                                     border_color=Colors.BOLD_MAGENTA)
-            confirm_choice = confirm_box.display(stdscr)
+            from dialogue import intro_systems_rebooting_bar
             
-            if confirm_choice == 0: # Continue
-                SaveManager.delete_save() # Clear old data
-                game_state = GameState() # Reset local state
-                
-                # Full onboarding for New Game
-                time.sleep(1)
-                onboarding(stdscr)
-                time.sleep(1)
-                initiating_sequence(stdscr)
-                fake_error_flood(stdscr, random.randint(40,50))
-                clear_terminal(stdscr)
-                display_success_message(stdscr)
-                memory_load_prompt(stdscr)
-
-                corrupt_ascii = []
-                for i in range(1,4):
-                    corrupt_ascii.append(load_ascii_art(f"intro_glitch_{i}.txt"))
-                corruption_flash(stdscr, corrupt_ascii)
-
-                time.sleep(2)
-                if config.TEST and config.TEST != 'system_reboot':
-                    player_name = 'TEST'
+            saves = SaveManager.get_all_saves(6)
+            choices = []
+            for i, save in enumerate(saves, 1):
+                if save:
+                    state = save["state"]
+                    choices.append(f"Slot {i}: {state.get('player_name', 'Unknown')} [IN USE]")
                 else:
-                    player_name = system_reboot(stdscr, game_state)
-                
-                game_state.player_name = player_name
-                current_scene_id = "scene1_identity_sequence"
-                break # Start scene loop
-            else:
+                    choices.append(f"Slot {i}: [ EMPTY ]")
+            choices.append("Cancel")
+            title_lines = [
+                " SELECT NEW THREAD ALLOCATION ",
+                "=============================="
+            ]
+            slot_menu = GrubMenu(choices, title=title_lines, title_menu_spacing=3, vertical_offset=2, glitchify=True)
+            slot_idx = slot_menu.display(stdscr)
+            if slot_idx == 6: # Cancel
                 clear_terminal(stdscr)
-                continue # Loop back to menu
+                continue
+                
+            current_slot = slot_idx + 1
+            
+            if saves[slot_idx]:
+                confirm_msg = [
+                    ("WARNING: VOLATILE DATA OVERWRITE", Colors.BOLD_RED),
+                    "",
+                    f"Initiating a new neural link on Slot {current_slot}",
+                    "will irreversibly erase previous imprints.",
+                    "",
+                    ("PROCEED WITH OVERWRITE?", Colors.BOLD_MAGENTA)
+                ]
+                confirm_box = MessageBox(confirm_msg, title="LINK ESTABLISHMENT", 
+                                         choices=["ABORT", "PROCEED"],
+                                         border_color=Colors.BOLD_MAGENTA)
+                confirm_choice = confirm_box.display(stdscr)
+                if confirm_choice == 0: # ABORT
+                    clear_terminal(stdscr)
+                    continue
+                SaveManager.delete_save(slot=current_slot) # Clear old data
+            
+            game_state = GameState() # Reset local state
+            audio.stop_music(fadeout_ms=1000)
+            clear_terminal(stdscr)
+            intro_systems_rebooting_bar(stdscr, duration=1.5, length=40, color=Colors.BOLD_MAGENTA)
+            clear_terminal(stdscr)
+            
+            # Full onboarding for New Game
+            time.sleep(1)
+            onboarding(stdscr)
+            time.sleep(1)
+            initiating_sequence(stdscr)
+            fake_error_flood(stdscr, random.randint(40,50))
+            clear_terminal(stdscr)
+            display_success_message(stdscr)
+            memory_load_prompt(stdscr)
+
+            corrupt_ascii = []
+            for i in range(1,4):
+                corrupt_ascii.append(load_ascii_art(f"intro_glitch_{i}.txt"))
+            corruption_flash(stdscr, corrupt_ascii)
+
+            time.sleep(2)
+            if config.TEST and config.TEST != 'system_reboot':
+                player_name = 'TEST'
+            else:
+                player_name = system_reboot(stdscr, game_state)
+            
+            game_state.player_name = player_name
+            current_scene_id = "scene1_identity_sequence"
+            break # Start scene loop
+
+        elif choice_index == 2: # Settings
+            while True:
+                music_text = "ON" if config.ENABLE_MUSIC else "OFF"
+                sound_text = "ON" if config.ENABLE_SOUNDS else "OFF"
+                anim_text = "OFF" if config.SKIP_ANIMATIONS else "ON"
+
+                choices = [
+                    f"Music: {music_text}",
+                    f"Sound FX: {sound_text}",
+                    f"Animations: {anim_text}",
+                    "Back"
+                ]
+                
+                title_lines = [
+                    " SYSTEM SETTINGS ",
+                    "================="
+                ]
+                settings_menu = GrubMenu(choices, title=title_lines, title_menu_spacing=3, vertical_offset=2, glitchify=False)
+                sel = settings_menu.display(stdscr)
+                
+                if sel == 0:
+                    config.ENABLE_MUSIC = not config.ENABLE_MUSIC
+                    if not config.ENABLE_MUSIC:
+                        audio.stop_music()
+                    else:
+                        audio.play_music("theme.mp3", loop=True, volume=0.5)
+                elif sel == 1:
+                    config.ENABLE_SOUNDS = not config.ENABLE_SOUNDS
+                    if config.ENABLE_SOUNDS:
+                        audio.play_sound("beep.mp3")
+                elif sel == 2:
+                    config.SKIP_ANIMATIONS = not config.SKIP_ANIMATIONS
+                elif sel == 3:
+                    break
+            
+            clear_terminal(stdscr)
+            continue
 
     # --- Scene Progression Loop ---
     while current_scene_id:
@@ -178,7 +290,7 @@ def run_game(stdscr):
             
             # Auto-save progress if we are transitioning to a new scene
             if current_scene_id:
-                SaveManager.save_game(game_state, current_scene_id, slot=1)
+                SaveManager.save_game(game_state, current_scene_id, slot=current_slot)
                 
         except Exception as e:
             from engine.logger import logger
@@ -215,6 +327,27 @@ def main_curses(stdscr):
 
         # 1. Calibrate terminal
         ensure_min_terminal(stdscr)
+        time.sleep(1)
+        
+        # 1.5. Disclaimer
+        if not config.SKIP_STARTUP:
+            from dialogue import glitch_ascii_animation
+            
+            disclaimer_ascii = load_ascii_art("disclaimer.txt")
+            disclaimer_text = (
+                "\n\n\n\nA very small percentage of individuals may experience epileptic seizures\n"
+                "or blackouts when exposed to certain light patterns or flashing lights.\n"
+                "This game contains sequences of bright, rapidly flashing colors and \n"
+                "glitch effects.\n\n"
+                "Player discretion is strongly advised."
+            )
+            
+            # Pass as a list of (text, color) blocks
+            glitch_blocks = [
+                (disclaimer_ascii, Colors.BOLD_RED),
+                (disclaimer_text, Colors.WHITE)
+            ]
+            glitch_ascii_animation(stdscr, glitch_blocks, hold_time=10.0)
         
         # 2. Show startup screen inside curses
         if not config.SKIP_STARTUP:
@@ -238,8 +371,6 @@ if __name__ == "__main__":
     from engine.logger import setup_logging
     setup_logging()
     
-    if config.TEST:
-        config.SKIP_STARTUP = True
-        
+    # Start the game
     curses.wrapper(main_curses)
 

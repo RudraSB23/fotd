@@ -186,5 +186,6 @@ class Scene2Ava(BaseScene):
         time.sleep(1)
         
         echo_line("...don't let her fade... or perhaps... let the code recycle her...", 0.04, Colors.BOLD_MAGENTA, stdscr=stdscr)
+        time.sleep(1)
         
-        return None # End of current content
+        return "node0x3_archive"

@@ -1,6 +1,6 @@
 # ============================================================
 #  .gitignore — Fragments of the Lattice (FOTD) v1.3
-#  Tailored for: Python console game, PyCharm IDE
+#  Tailored for: Python console game, uv package manager
 # ============================================================
 
 
@@ -15,12 +15,11 @@ __pycache__/
 
 
 # ------------------------------------------------------------
-# Python — Virtual Environments
+# Python — Virtual Environments (uv creates .venv by default)
 # ------------------------------------------------------------
-venv/
 .venv/
+venv/
 env/
-.env/
 ENV/
 .Python
 
@@ -118,7 +117,6 @@ $RECYCLE.BIN/
 *.tmp
 *.temp
 *.bak
-*.swp
 logs/
 log/
 
@@ -130,15 +128,13 @@ log/
 # assets/sounds/*.wav
 # assets/sounds/*.ogg
 # assets/sounds/*.flac
-# Note: assets/sounds/.keep is preserved to track the folder
 
 
 # ------------------------------------------------------------
 # Game — Runtime / Generated Files
-# (saves.json is intentionally NOT ignored — it may be useful
-#  to track a default/template save state)
 # ------------------------------------------------------------
-# saves.json  ← uncomment to ignore save data entirely
+saves/
+saves.json
 
 
 # ------------------------------------------------------------
@@ -146,7 +142,7 @@ log/
 # ------------------------------------------------------------
 .env
 .env.*
-!.env.example   
+!.env.example
 secrets.py
 config.local.py
 
@@ -155,4 +151,3 @@ config.local.py
 # Developer Notes (local only — not for version control)
 # ------------------------------------------------------------
 DEVNOTES.txt
-.md
