@@ -1,6 +1,6 @@
-from engine.console_effects import Colors
-from engine.elements import MessageBox
-from engine.state_manager import GameState
+from engine.ui.console_effects import Colors
+from engine.ui.elements import MessageBox
+from engine.core.state_manager import GameState
 
 class EndScreen:
     def __init__(self, game_state: GameState):
@@ -16,9 +16,7 @@ class EndScreen:
             f"Fragments Collected: {len(self.game_state.identity_fragments)}",
             f"Puzzles Solved: {self.game_state.puzzles_solved}",
             f"Total Playtime: {self.game_state.playtime_seconds:.0f}s",
-            "",
-            ("Re-aligning consciousness...", Colors.BOLD_WHITE)
         ]
 
-        box = MessageBox(stats, title="LATTICE SNAPSHOT", border_color=Colors.BOLD_MAGENTA)
+        box = MessageBox(stats, title="TO BE CONTINUED", border_color=Colors.BOLD_MAGENTA)
         box.display(stdscr)

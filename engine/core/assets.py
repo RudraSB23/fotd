@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Optional, List
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 ASCII_DIR = BASE_DIR / "assets" / "ascii_art"
 
 

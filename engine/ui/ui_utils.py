@@ -4,9 +4,9 @@ import time
 import os
 from typing import Tuple
 
-from engine.console_effects import Colors, clear_terminal
-from engine.elements import MessageBox
-from engine.audio import AudioManager
+from engine.ui.console_effects import Colors, clear_terminal
+from engine.ui.elements import MessageBox
+from engine.core.audio import AudioManager
 
 def flush_input_buffer(stdscr):
     """Flush all pending input from the buffer."""
@@ -83,7 +83,7 @@ def _is_true_fullscreen_f11() -> bool:
     except Exception:
         return False
 
-def ensure_min_terminal(stdscr, min_height=40, min_width=120):
+def ensure_min_terminal(stdscr, min_height=40, min_width=120, getch_func=None):
     """
     F11 FULLSCREEN ONLY + minimum size.
     """
@@ -108,14 +108,14 @@ def ensure_min_terminal(stdscr, min_height=40, min_width=120):
         fullscreen_fail = not is_f11_fullscreen
 
         lines = [
-            " LATTICE TERMINAL CALIBRATION ",
+            " TERMINAL CALIBRATION REQUIRED ",
             "================================",
             "",
-            f" [SIZE: {w}x{h}] " + (f"(NEED: {min_width}x{min_height})" if size_fail else "[OK]"),
-            f" [MODE: {'F11 FULLSCREEN' if is_f11_fullscreen else 'WINDOWED/MAXIMIZED'}] " + ( "(NEED: F11 FULLSCREEN ONLY)" if fullscreen_fail else "[OK]"),
+            f" [Current Resolution: {w}x{h}] " + (f"(Required: {min_width}x{min_height})" if size_fail else "[OK]"),
+            f" [Fullscreen Mode: {'ENABLED' if is_f11_fullscreen else 'DISABLED'}] " + ( "(Press F11 for Fullscreen)" if fullscreen_fail else "[OK]"),
             "",
-            " immersion_protocol requires active FULLSCREEN state. ",
-            " Please press [F11] for TRUE FULLSCREEN (not maximize). ",
+            " This game requires a large, full-screen terminal to display properly. ",
+            " Please press [F11] to enter True Fullscreen mode (not maximized). ",
             "",
             " [R] - RE-SCAN",
             " [Q] - QUIT",
@@ -136,10 +136,12 @@ def ensure_min_terminal(stdscr, min_height=40, min_width=120):
 
         stdscr.refresh()
         stdscr.nodelay(False)
-        ch = stdscr.getch()
-
+        getch = getch_func or stdscr.getch
+        ch = getch()
+        
+        if ch == -999: return  # Quit signal
         if ch in [ord('q'), ord('Q')]:
-            sys.exit(0)
+            sys.exit(0) 
         elif ch in [ord('r'), ord('R')]:
             continue
 
@@ -157,8 +159,8 @@ def ensure_min_terminal(stdscr, min_height=40, min_width=120):
         " [ TERMINAL CALIBRATION SUCCESSFUL ] ",
         "=====================================",
         "",
-        " neural_link established. ",
-        " biometric_signature verified. ",
+        " Terminal configured successfully. ",
+        " Verification complete. Loading game... ",
         ""
     ]
     
@@ -179,8 +181,7 @@ def ensure_min_terminal(stdscr, min_height=40, min_width=120):
     
     stdscr.refresh()
     time.sleep(2.0)
-    
-    audio.stop_music(fadeout_ms=500)
+
     stdscr.clear()
     stdscr.refresh()
 

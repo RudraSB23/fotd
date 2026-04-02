@@ -3,7 +3,7 @@ import json
 import os
 import time
 from typing import Dict, Optional
-from engine.state_manager import GameState
+from engine.core.state_manager import GameState
 
 SAVE_VERSION = "1.1.0"
 SAVES_DIR = "saves"

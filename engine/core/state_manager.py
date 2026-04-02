@@ -78,7 +78,7 @@ class GameState:
             return "integration"
         return "undetermined"
 
-    # TEMPORARY - for existing dialogue.py calls
+    # TEMPORARY - for existing intro_sequence.py calls
     def apply_effect(self, effect_str: str) -> None:
         if effect_str.startswith("stability+"):
             try:

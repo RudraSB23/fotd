@@ -2,8 +2,8 @@ import curses
 import time
 import random
 
-from engine.audio import *
-from engine.console_effects import _glitchify, Colors, CursesColors
+from engine.core.audio import *
+from engine.ui.console_effects import _glitchify, Colors, CursesColors
 
 audio = AudioManager()
 
@@ -30,13 +30,13 @@ class GrubMenu:
         else:
             self.title_lines = title
 
-    def display(self, stdscr=None) -> int:
+    def display(self, stdscr=None, getch_func=None) -> int:
         if stdscr is None:
             return curses.wrapper(self._curses_loop)
         else:
-            return self._curses_loop(stdscr)
+            return self._curses_loop(stdscr, getch_func=getch_func)
 
-    def _curses_loop(self, stdscr):
+    def _curses_loop(self, stdscr, getch_func=None):
         curses.curs_set(0)
         curses_colors = CursesColors()
         stdscr.nodelay(True)
@@ -53,7 +53,10 @@ class GrubMenu:
 
         while True:
             # Check for input before clearing if we want to avoid flicker
-            key = stdscr.getch()
+            getch = getch_func or stdscr.getch
+            key = getch()
+            if key == -999: return -999
+            
             if key == curses.KEY_UP and self.selected_index > 0:
                 self.selected_index -= 1
             elif key == curses.KEY_DOWN and self.selected_index < len(self.options) - 1:
@@ -148,8 +151,8 @@ class GrubMenu:
 
 
 
-from engine.elements import ChoiceMenu
-from engine.state_manager import GameState
+from engine.ui.elements import ChoiceMenu
+from engine.core.state_manager import GameState
 
 class PauseMenu(ChoiceMenu):
     def __init__(self, game_state: GameState):

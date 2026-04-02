@@ -5,7 +5,7 @@ import random
 import curses
 import sys
 from typing import List, Union
-from engine.audio import AudioManager
+from engine.core.audio import AudioManager
 
 audio = AudioManager()
 
@@ -161,13 +161,14 @@ def print_colored(
 
 def print_typing(
     text: str,
-    seconds_per_char: float = 0.03,
+    seconds_per_char: float = 0.05,
     color: str = Colors.RESET,
     stdscr=None,
     y: int = None,
     x: int = None,
     end: str = "\n",
-    sound: bool = True
+    sound: bool = True,
+    getch_func=None
 ):
     if stdscr is None:
         raise ValueError("Curses stdscr must be passed for printing.")
@@ -184,9 +185,14 @@ def print_typing(
 
     for idx, ch in enumerate(text):
         if not skip:
-            # Skip detection: Enter (10, 13), Space (32), 's' keyboard key
             try:
-                key = stdscr.getch()
+                getch = getch_func or stdscr.getch
+                key = getch()
+                if key == -999: # Quit signal from pause menu
+                    stdscr.nodelay(False)
+                    if sound:
+                        audio.stop_sound("typing.mp3")
+                    return -999
                 if key in [10, 13, 32, ord('s')]:
                     skip = True
                     if sound:
@@ -232,7 +238,8 @@ def print_glitch(
     stdscr=None,
     y: int = None,
     x: int = None,
-    end: str = "\n"
+    end: str = "\n",
+    getch_func=None
 ):
     if stdscr is None:
         raise ValueError("Curses stdscr must be passed for printing.")
@@ -243,7 +250,7 @@ def print_glitch(
     scrambled = _glitchify(text, intensity=intensity)
 
     if typing:
-        print_typing(scrambled, 0.03, base_color, stdscr=stdscr, y=y, x=x, end=end)
+        print_typing(scrambled, 0.03, base_color, stdscr=stdscr, y=y, x=x, end=end, getch_func=getch_func)
     else:
         for idx, ch in enumerate(scrambled):
             try:
@@ -340,7 +347,7 @@ def clear_main_terminal():
     os.system("cls" if os.name == "nt" else "clear")
 
 def full_screen_glitch(stdscr, ascii_art_blocks: list[str] | None = None, frames: int = 180, frame_delay: float = 0.03) -> None:
-    from engine.console_effects import Colors, CursesColors, clear_terminal
+    from engine.ui.console_effects import Colors, CursesColors, clear_terminal
     charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{};:',.<>/?\\|█▓▒░"
 
     ascii_index = 0

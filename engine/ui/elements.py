@@ -3,8 +3,8 @@ import random
 import time
 from typing import Union, List
 
-from engine.audio import *
-from engine.console_effects import Colors, CursesColors, print_colored
+from engine.core.audio import *
+from engine.ui.console_effects import Colors, CursesColors, print_colored
 
 audio = AudioManager()
 
@@ -15,9 +15,11 @@ class ChoiceMenu:
         self.selected_index = 0
         self.corruption = corruption  # pass current corruption level in!
 
-    def display(self, stdscr) -> int:
+    def display(self, stdscr, duration=None, getch_func=None) -> int:
         if not self.choices:
             raise ValueError("No choices provided for ChoiceMenu.")
+        
+        getch = getch_func or stdscr.getch
         
         # Setup curses for menu interaction
         curses.curs_set(0)
@@ -70,7 +72,10 @@ class ChoiceMenu:
             
             stdscr.refresh()
 
-            key = stdscr.getch()
+            key = getch()
+            if key == -999:
+                return -999
+                
             if key == curses.KEY_UP:
                 self.selected_index = (self.selected_index - 1) % len(self.choices)
             elif key == curses.KEY_DOWN:
@@ -136,8 +141,8 @@ class TimedPuzzle:
                 
         return "".join(chars)
 
-    def display(self, stdscr) -> bool:
-        from engine.console_effects import clear_terminal, print_centered
+    def display(self, stdscr, getch_func=None) -> bool:
+        from engine.ui.console_effects import clear_terminal, print_centered
         
         # 1. Initialization and Layout Setup
         clear_terminal(stdscr)
@@ -159,6 +164,7 @@ class TimedPuzzle:
         start_x = (max_w - box_width) // 2
         
         # 2. Internal wait logic if auto_start is False
+        getch = getch_func or stdscr.getch
         if not self.auto_start:
             stdscr.nodelay(False)
             while True:
@@ -171,7 +177,9 @@ class TimedPuzzle:
                 print_colored(prompt, Colors.BOLD_RED, stdscr=stdscr, y=start_y + (box_height // 2), x=p_x, end="")
                 stdscr.refresh()
                 
-                key = stdscr.getch()
+                key = getch()
+                if key == -999:
+                    return False
                 if key in [10, 13]:
                     break
             clear_terminal(stdscr)
@@ -226,7 +234,9 @@ class TimedPuzzle:
             
             # Input Handling
             try:
-                key = stdscr.getch()
+                key = getch()
+                if key == -999: # Quit to Menu
+                    return False
                 if key != -1 and key != 27:  # ignore ESC
                     if key in [8, 127, curses.KEY_BACKSPACE]:
                         self.input_text = self.input_text[:-1]
@@ -240,7 +250,7 @@ class TimedPuzzle:
         # 4. Final Feedback Rendering
         if not success:
             # Full-screen glitch flash on failure
-            from engine.console_effects import full_screen_glitch
+            from engine.ui.console_effects import full_screen_glitch
             audio.play_sound("glitch.mp3")
             full_screen_glitch(stdscr, frames=60, frame_delay=0.02)
             audio.stop_sound("glitch.mp3")
@@ -313,20 +323,16 @@ class MessageBox:
                     ])
                 
                 print_colored(char_to_draw, draw_color, stdscr=stdscr, y=y + i, x=x + idx, end="")
-    def __init__(self, 
-                 message: Union[str, List[str]], 
-                 title: str = None, 
-                 choices: List[str] = None, 
-                 border_color: str = Colors.BOLD_CYAN,
-                 text_color: str = Colors.RESET):
-        self.message = [message] if isinstance(message, str) else message
+    def __init__(self, message: list, title: str = None, choices: list = None, border_color = None, text_color = None):
+        self.message = message
         self.title = title
         self.choices = choices
-        self.border_color = border_color
-        self.text_color = text_color
+        self.border_color = border_color or Colors.BOLD_WHITE
+        self.text_color = text_color or Colors.WHITE
         self.selected_index = 0
 
-    def display(self, stdscr, duration: float = None) -> Union[None, int]:
+    def display(self, stdscr, duration: float = 0, getch_func=None) -> Union[None, int]:
+        getch = getch_func or stdscr.getch
         curses.curs_set(0)
         stdscr.keypad(True)
         stdscr.nodelay(False)
@@ -405,14 +411,16 @@ class MessageBox:
                     current_line_y += 1
                 
                 stdscr.refresh()
-                key = stdscr.getch()
+                key = getch()
+                if key == -999: return -999
+                
                 if key == curses.KEY_UP:
                     self.selected_index = (self.selected_index - 1) % len(self.choices)
                 elif key == curses.KEY_DOWN:
                     self.selected_index = (self.selected_index + 1) % len(self.choices)
                 elif key in [10, 13]:
                     audio.play_sound(random.choice(["beep.mp3", "static.mp3"]))
-                    from engine.console_effects import clear_terminal
+                    from engine.ui.console_effects import clear_terminal
                     clear_terminal(stdscr)
                     return self.selected_index
             else:
@@ -420,12 +428,12 @@ class MessageBox:
                 stdscr.refresh()
                 if duration:
                     time.sleep(duration)
-                    from engine.console_effects import clear_terminal
+                    from engine.ui.console_effects import clear_terminal
                     clear_terminal(stdscr)
                     return None
                 else:
                     stdscr.nodelay(False)
-                    stdscr.getch()
-                    from engine.console_effects import clear_terminal
+                    getch()
+                    from engine.ui.console_effects import clear_terminal
                     clear_terminal(stdscr)
                     return None

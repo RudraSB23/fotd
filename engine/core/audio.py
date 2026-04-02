@@ -1,6 +1,8 @@
 import os
-import pygame
 import threading
+
+import pygame
+
 from .config import config
 
 
@@ -18,17 +20,19 @@ class AudioManager:
     def __init__(self):
         if self._initialized:
             return
-        
+
         pygame.mixer.init()
         self.current_track = None
         self.sounds = {}
-        self.sounds_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "sounds")
+        self.sounds_dir = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "assets", "sounds"
+        )
         self.loading_complete = threading.Event()
-        
+
         # Start preloading in the background
         self._load_thread = threading.Thread(target=self._preload_worker, daemon=True)
         self._load_thread.start()
-        
+
         self._initialized = True
 
     def _preload_worker(self):
@@ -135,3 +139,16 @@ class AudioManager:
         sound = self.sounds.get(file)
         if sound:
             sound.stop()
+
+    # -----------------
+    # GLOBAL CONTROL
+    # -----------------
+    def pause_all(self):
+        """Pause all music and sound effects."""
+        pygame.mixer.music.pause()
+        pygame.mixer.pause()
+
+    def resume_all(self):
+        """Resume all music and sound effects."""
+        pygame.mixer.music.unpause()
+        pygame.mixer.unpause()
