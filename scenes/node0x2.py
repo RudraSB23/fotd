@@ -1,4 +1,5 @@
 import time
+import curses
 
 from engine.core.audio import AudioManager
 from engine.ui.console_effects import (
@@ -11,7 +12,7 @@ from engine.ui.console_effects import (
 from engine.ui.elements import ChoiceMenu, TimedPuzzle
 from engine.core.save_manager import SaveManager
 from engine.core.state_manager import GameState
-
+from engine.ui.console_effects import full_screen_glitch, print_centered, print_glitch
 from .base_scene import BaseScene
 
 audio = AudioManager()
@@ -20,11 +21,18 @@ audio = AudioManager()
 class Scene2Ava(BaseScene):
     def run(self, stdscr, game_state: GameState, getch_func=None) -> str:
         SaveManager.save_game(game_state, "node0x2_ava_intro")
+        
+        clear_terminal(stdscr)
         audio.play_sound("beep.mp3")
-        print_colored(
-            "<<< ENTERING NODE 0x2: FRAGMENT ALPHA >>>\n", Colors.GREEN, stdscr=stdscr
-        )
-        time.sleep(1.5)
+
+        for i in range(20):
+            print_glitch("<<< ENTERING NODE 0x2: FRAGMENT ALPHA >>>", base_color=Colors.BOLD_GREEN, glitch_color=True, stdscr=stdscr, getch_func=getch_func, center=True, intensity=1 - (i * 0.05))
+            time.sleep(0.05)
+        clear_terminal(stdscr)
+        print_centered("<<< ENTERING NODE 0x2: FRAGMENT ALPHA >>>", color=Colors.BOLD_GREEN, stdscr=stdscr, offset=-1)
+        time.sleep(1.0)
+        clear_terminal(stdscr)
+        time.sleep(1.0)
 
         print_typing(
             "The scenery shifts. ", 0.04, Colors.BOLD_BLACK, stdscr=stdscr, end="", getch_func=getch_func
@@ -39,7 +47,7 @@ class Scene2Ava(BaseScene):
         )
         time.sleep(0.8)
         print_typing(
-            "There is a flicker in the center—a figure made of data shards.",
+            "There is a flicker in the center, a figure made of data shards.",
             0.04,
             Colors.BOLD_BLACK,
             stdscr=stdscr,
@@ -47,7 +55,7 @@ class Scene2Ava(BaseScene):
         )
         time.sleep(1.2)
 
-        echo_line("...Ava?...", 0.06, Colors.BOLD_MAGENTA, stdscr=stdscr, getch_func=getch_func)
+        echo_line("\n...Ava?...\n", 0.06, Colors.BOLD_MAGENTA, stdscr=stdscr, getch_func=getch_func)
         time.sleep(0.5)
 
         print_typing(
@@ -190,7 +198,7 @@ class Scene2Ava(BaseScene):
         print_typing("I was Ava. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
         time.sleep(0.75)
         print_typing(
-            "0x41. 0x76. 0x61. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func
+            "0x41 0x76 0x61. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func
         )
         time.sleep(0.75)
         print_typing("Before the bleed started.", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, getch_func=getch_func)
@@ -369,7 +377,7 @@ class Scene2Ava(BaseScene):
         time.sleep(1)
 
         echo_line(
-            "...don't let her fade... or perhaps... let the code recycle her...",
+            "\n...don't let her fade... or perhaps... let the code recycle her...\n",
             0.04,
             Colors.BOLD_MAGENTA,
             stdscr=stdscr,

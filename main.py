@@ -85,16 +85,12 @@ def run_game(stdscr):
     game_state = GameState()
     time.sleep(0.5)
 
-    # Debug Bypass
+    # TEST Bypass
     if config.TEST:
         game_state.player_name = "TEST"
-        from scenes import intro_sequence as intro
 
-        # Dynamically look up the function in the intro_sequence module
-        scene_func = getattr(intro, str(config.TEST), None)
-
-        if scene_func and callable(scene_func):
-            # Modular MessageBox for bypass notification
+        if config.TEST == "system_reboot":
+            from scenes.intro_sequence import system_reboot
             msg = [
                 "",
                 ("TEST MODE STORY BYPASS", Colors.BOLD_RED),
@@ -102,23 +98,46 @@ def run_game(stdscr):
                 ("Continuing from:", Colors.BOLD_WHITE),
                 (f"[{config.TEST}]", Colors.BOLD_WHITE),
             ]
-            box = MessageBox(
-                msg, title="ADMIN OVERRIDE", border_color=Colors.BOLD_MAGENTA
-            )
-            box.display(stdscr, duration=3.0)
-            time.sleep(1)
-            if config.TEST == "system_reboot":
-                player_name = system_reboot(stdscr, game_state)
-            else:
-                scene_func(stdscr, game_state)
+            MessageBox(msg, title="ADMIN OVERRIDE", border_color=Colors.BOLD_MAGENTA).display(stdscr, duration=1.0)
+            time.sleep(0.5)
+            system_reboot(stdscr, game_state)
             return
-        else:
+
+        try:
+            scene = get_scene(str(config.TEST))
+            msg = [
+                "",
+                ("TEST MODE STORY BYPASS", Colors.BOLD_RED),
+                "",
+                ("Continuing from:", Colors.BOLD_WHITE),
+                (f"[{config.TEST}]", Colors.BOLD_WHITE),
+            ]
+            MessageBox(msg, title="ADMIN OVERRIDE", border_color=Colors.BOLD_MAGENTA).display(stdscr, duration=1.0)
+            audio.stop_music()
+            time.sleep(1)
+
+            current_scene_id = str(config.TEST)
+            current_slot = 1
+            while current_scene_id:
+                scene = get_scene(current_scene_id)
+
+                def getch_wrapper():
+                    return getch_with_pause(stdscr, game_state, audio, current_slot, current_scene_id)
+
+                next_scene_id = scene.run(stdscr, game_state, getch_func=getch_wrapper)
+                if next_scene_id == -999:
+                    break
+                current_scene_id = next_scene_id
+            return
+
+        except ValueError:
             print_colored(
-                f"\n[DEBUG ERROR] Scene '{config.TEST}' not found in intro_sequence.py!",
+                f"\n[DEBUG ERROR] Scene '{config.TEST}' not found in registry or intro_sequence.py!",
                 Colors.BOLD_RED,
                 stdscr=stdscr,
             )
             time.sleep(2)
+
     current_scene_id = None
     game_state = None
     current_slot = 1
@@ -169,23 +188,23 @@ def run_game(stdscr):
 
                 if not has_saves:
                     error_msg = [
-                        ("CRITICAL ERROR: NO DATA FOUND", Colors.BOLD_RED),
+                        ("NO SAVA DATA FOUND", Colors.BOLD_RED),
                         "",
                         "No encrypted save data detected.",
-                        "All local buffers are empty.",
+                        "All save files are empty.",
                         "",
-                        ("Returning to primary node...", Colors.BOLD_WHITE),
+                        ("Returning to main menu...", Colors.BOLD_WHITE),
                     ]
                     error_box = MessageBox(
-                        error_msg, title="NODE FAILURE", border_color=Colors.BOLD_RED
+                        error_msg, title="NO SAVES FOUND", border_color=Colors.BOLD_RED
                     )
                     error_box.display(stdscr, duration=2.5)
                     clear_terminal(stdscr)
                     continue
 
                 title_lines = [
-                    " SELECT MEMORY TO RESTORE ",
-                    "==========================",
+                    "    SELECT SAVE TO LOAD    ",
+                    "===========================",
                 ]
                 slot_menu = GrubMenu(
                     choices,
@@ -219,7 +238,7 @@ def run_game(stdscr):
                 clear_terminal(stdscr)
                 msg = [
                     (
-                        f"RECOVERING FRAGMENTS FROM SLOT {current_slot}...",
+                        f"RECOVERING MEMORY FROM SLOT {current_slot}...",
                         Colors.BOLD_CYAN,
                     )
                 ]
@@ -239,11 +258,9 @@ def run_game(stdscr):
                 scene_name = get_scene_name(current_scene_id)
 
                 success_msg = [
-                    (f"FRAGMENT RESTORED: {scene_name}", Colors.BOLD_GREEN),
+                    (f"MEMORY RESTORED: {scene_name}", Colors.BOLD_GREEN),
                     "",
                     f"Subject: {game_state.player_name}",
-                    f"Stability: {game_state.stability} | Puzzles: {game_state.puzzles_solved}",
-                    "",
                     ("Re-aligning consciousness...", Colors.BOLD_WHITE),
                 ]
                 box = MessageBox(
@@ -268,7 +285,7 @@ def run_game(stdscr):
                         choices.append(f"Slot {i}: [ EMPTY ]")
                 choices.append("Cancel")
                 title_lines = [
-                    " SELECT NEW THREAD ALLOCATION ",
+                    "    SELECT NEW MEMORY SLOT    ",
                     "==============================",
                 ]
                 slot_menu = GrubMenu(
@@ -287,21 +304,21 @@ def run_game(stdscr):
 
                 if saves[slot_idx]:
                     confirm_msg = [
-                        ("WARNING: VOLATILE DATA OVERWRITE", Colors.BOLD_RED),
+                        ("WARNING: PREVIOUS SAVE WILL BE ERASED", Colors.BOLD_RED),
                         "",
-                        f"Initiating a new neural link on Slot {current_slot}",
-                        "will irreversibly erase previous imprints.",
+                        f"Initiating a new save on Slot {current_slot}",
+                        "will irreversibly erase the previous save.",
                         "",
                         ("PROCEED WITH OVERWRITE?", Colors.BOLD_MAGENTA),
                     ]
                     confirm_box = MessageBox(
                         confirm_msg,
-                        title="LINK ESTABLISHMENT",
-                        choices=["ABORT", "PROCEED"],
+                        title="SAVE OVERWRITE",
+                        choices=["GO BACK", "PROCEED"],
                         border_color=Colors.BOLD_MAGENTA,
                     )
                     confirm_choice = confirm_box.display(stdscr)
-                    if confirm_choice == 0:  # ABORT
+                    if confirm_choice == 0:  # GO BACK
                         clear_terminal(stdscr)
                         continue
                     SaveManager.delete_save(slot=current_slot)  # Clear old data
@@ -316,13 +333,18 @@ def run_game(stdscr):
 
                 # Full onboarding for New Game
                 time.sleep(1)
-                onboarding(stdscr)
+                
+                # Global pause-aware getch for the intro sequence
+                def intro_getch():
+                    return getch_with_pause(stdscr, game_state, audio, current_slot, "intro")
+
+                onboarding(stdscr, getch_func=intro_getch)
                 time.sleep(1)
-                initiating_sequence(stdscr)
-                fake_error_flood(stdscr, random.randint(40, 50))
+                initiating_sequence(stdscr, getch_func=intro_getch)
+                fake_error_flood(stdscr, random.randint(40, 50), getch_func=intro_getch)
                 clear_terminal(stdscr)
-                display_success_message(stdscr)
-                memory_load_prompt(stdscr)
+                display_success_message(stdscr, getch_func=intro_getch)
+                memory_load_prompt(stdscr, getch_func=intro_getch)
 
                 corrupt_ascii = []
                 for i in range(1, 4):
@@ -333,7 +355,7 @@ def run_game(stdscr):
                 if config.TEST and config.TEST != "system_reboot":
                     player_name = "TEST"
                 else:
-                    player_name = system_reboot(stdscr, game_state)
+                    player_name = system_reboot(stdscr, game_state, getch_func=intro_getch)
 
                 game_state.player_name = player_name
                 current_scene_id = "scene1_identity_sequence"
@@ -386,8 +408,6 @@ def run_game(stdscr):
     # --- Scene Progression Loop ---
     while current_scene_id:
         try:
-            from scenes.registry import get_scene
-
             scene = get_scene(current_scene_id)
 
             # Create a localized wrapper that has access to all required state

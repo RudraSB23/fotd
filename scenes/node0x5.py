@@ -5,9 +5,9 @@ from engine.core.save_manager import SaveManager
 from engine.ui.console_effects import print_typing, Colors, clear_terminal
 from .base_scene import BaseScene
 
-class Scene7Lyra(BaseScene):
+class Scene5Experimental(BaseScene):
     def run(self, stdscr, game_state: GameState, getch_func=None) -> str:
-        SaveManager.save_game(game_state, "node0x7_lyra", stdscr)
+        SaveManager.save_game(game_state, "node0x5_experimental", stdscr)
         
         from engine.ui.console_effects import full_screen_glitch, print_centered
         
@@ -18,9 +18,9 @@ class Scene7Lyra(BaseScene):
         
         # 2. Centered High-Impact Header
         stdscr.attron(curses.A_BOLD)
-        print_centered("<<< ENTERING NODE 0x7: FRAGMENT GAMMA >>>", color=Colors.BOLD_GREEN, stdscr=stdscr)
+        print_centered("<<< ENTERING NODE 0x5: EXPERIMENTAL_VOID >>>", color=Colors.BOLD_GREEN, stdscr=stdscr)
         stdscr.attroff(curses.A_BOLD)
         
         time.sleep(2.0)
         
-        return "node0x8_observation"
+        return "node0x6_synch"

@@ -508,7 +508,7 @@ def initiating_sequence(stdscr, getch_func=None):
     for text, color in onboarding_text:
         audio.play_sound("beep.mp3")
         print_colored(text, color, stdscr=stdscr)
-        time.sleep(round(len(text) / 50) + 0.5)
+        time.sleep(0.25)
 
     time.sleep(1)
     print_colored("", stdscr=stdscr)  
@@ -551,7 +551,7 @@ def fake_error_flood(stdscr, lines=40, getch_func=None):
     time.sleep(2)
     stdscr.nodelay(False)
     print_typing("\n\n[ERR] A fatal error occured.", 0.03, Colors.BOLD_RED, stdscr=stdscr, end="", sound=True, getch_func=getch_func)
-    print_colored("\n> Press [Enter] to retry: ", Colors.BOLD_GREEN, stdscr=stdscr, end="")
+    print_colored("\n> Press [Enter] to retry ", Colors.BOLD_GREEN, stdscr=stdscr, end="")
     stdscr.nodelay(False)
     while True:
         key = getch()
@@ -569,7 +569,7 @@ def display_success_message(stdscr, getch_func=None):
 def memory_load_prompt(stdscr, getch_func=None):
     getch = getch_func or stdscr.getch
     stdscr.nodelay(False)
-    print_colored("\n[INPUT REQUIRED] Load Memory: [Y/Y] ", Colors.CYAN, stdscr=stdscr, end="")
+    print_colored("\n[INPUT REQUIRED] Load Memory [Y/Y]: ", Colors.CYAN, stdscr=stdscr, end="")
     while True:
         key = getch()
         if key == -999: return

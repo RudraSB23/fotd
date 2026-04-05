@@ -18,7 +18,7 @@ class Scene1Corridor(BaseScene):
         
         # === 1. System registering name ===
         audio.play_sound("beep.mp3")
-        print_colored(f"\n[SYS] Identity registered: {player_name}", Colors.GREEN, stdscr=stdscr)
+        print_colored(f"[SYS] Identity registered: {player_name}", Colors.GREEN, stdscr=stdscr)
         time.sleep(1)
         audio.play_sound("beep.mp3")
         print_colored("[WARN] Memory integrity... FRAGMENTED", Colors.RED, stdscr=stdscr)
@@ -69,11 +69,11 @@ class Scene1Corridor(BaseScene):
         if choice == -999: return -999
 
         if choice == 0:  # follow
-            echo_line("...yes... deeper... don’t turn back now...", 0.04, Colors.BOLD_MAGENTA, stdscr=stdscr, end="\n\n", getch_func=getch_func)
+            echo_line("\n...yes... deeper... don’t turn back now...", 0.04, Colors.BOLD_MAGENTA, stdscr=stdscr, end="\n\n", getch_func=getch_func)
             game_state.apply_effect("corruption+2")
             return self.part2(stdscr, game_state, path="follow", getch_func=getch_func)
         elif choice == 1:  # resist
-            echo_line("...no... don’t leave me here...", 0.04, Colors.BOLD_MAGENTA, stdscr=stdscr, end="\n\n", getch_func=getch_func)
+            echo_line("\n...no... don’t leave me here...", 0.04, Colors.BOLD_MAGENTA, stdscr=stdscr, end="\n\n", getch_func=getch_func)
             game_state.apply_effect("stability+2")
             return self.part2(stdscr, game_state, path="resist", getch_func=getch_func)
             

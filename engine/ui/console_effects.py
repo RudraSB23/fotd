@@ -132,7 +132,9 @@ def print_colored(
     stdscr=None,
     y: int = None,
     x: int = None,
-    sound: bool = False
+    sound: bool = False,
+    getch_func=None,
+    **kwargs
 ):
     if stdscr is None:
         raise ValueError("Curses stdscr must be passed for printing.")
@@ -235,33 +237,50 @@ def print_glitch(
     base_color: str = Colors.MAGENTA,
     intensity: float = 0.15,
     typing: bool = False,
+    glitch_color: bool = False,
     stdscr=None,
     y: int = None,
     x: int = None,
+    center: bool = False,
     end: str = "\n",
-    getch_func=None
+    getch_func=None,
+    **kwargs
 ):
     if stdscr is None:
         raise ValueError("Curses stdscr must be passed for printing.")
+
+    if center:
+        try:
+            h, w = stdscr.getmaxyx()
+            y = h // 2
+            x = (w - len(text)) // 2
+        except curses.error:
+            pass
 
     curses_colors = CursesColors()
     attr = map_ansi_to_curses(base_color, curses_colors)
 
     scrambled = _glitchify(text, intensity=intensity)
 
+    def resolve_char_attr():
+        if glitch_color and random.random() < intensity:
+            return map_ansi_to_curses(random.choice(colors), curses_colors)
+        return attr
+
     if typing:
-        print_typing(scrambled, 0.03, base_color, stdscr=stdscr, y=y, x=x, end=end, getch_func=getch_func)
+        color = random.choice(colors) if (glitch_color and random.random() < intensity) else base_color
+        print_typing(scrambled, 0.03, color, stdscr=stdscr, y=y, x=x, end=end, getch_func=getch_func)
     else:
         for idx, ch in enumerate(scrambled):
             try:
+                char_attr = resolve_char_attr()
                 if y is not None and x is not None:
-                    stdscr.addch(y, x + idx, ch, attr)
+                    stdscr.addch(y, x + idx, ch, char_attr)
                 else:
-                    stdscr.addch(ch, attr)
+                    stdscr.addch(ch, char_attr)
             except curses.error:
                 pass
 
-        # Add `end` (newline or nothing) after glitch text
         if end:
             try:
                 stdscr.addstr(end)
@@ -271,8 +290,7 @@ def print_glitch(
         stdscr.refresh()
 
 
-
-def echo_line(text: str, seconds_per_char: float = 0.03, color: str = Colors.BOLD_MAGENTA, intensity: float = 0.15, stdscr=None, y: int = None, x: int = None, end: str = ""):
+def echo_line(text: str, seconds_per_char: float = 0.03, color: str = Colors.BOLD_MAGENTA, intensity: float = 0.15, stdscr=None, y: int = None, x: int = None, end: str = "", getch_func=None, **kwargs):
     if stdscr is None:
         raise ValueError("Curses stdscr must be passed for printing.")
 
@@ -346,7 +364,7 @@ def clear_terminal(stdscr=None):
 def clear_main_terminal():
     os.system("cls" if os.name == "nt" else "clear")
 
-def full_screen_glitch(stdscr, ascii_art_blocks: list[str] | None = None, frames: int = 180, frame_delay: float = 0.03) -> None:
+def full_screen_glitch(stdscr, ascii_art_blocks: list[str] | None = None, frames: int = 180, frame_delay: float = 0.03, sound: bool = True) -> None:
     from engine.ui.console_effects import Colors, CursesColors, clear_terminal
     charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{};:',.<>/?\\|█▓▒░"
 
@@ -369,7 +387,8 @@ def full_screen_glitch(stdscr, ascii_art_blocks: list[str] | None = None, frames
         curses_colors.ansi_1m36, curses_colors.ansi_1m37
     ]
 
-    audio.play_music("glitch.mp3")
+    if sound:
+        audio.play_music("glitch.mp3")
     for frame in range(frames):
         stdscr.erase()
 
