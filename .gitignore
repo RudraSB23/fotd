@@ -151,12 +151,10 @@ config.local.py
 # ------------------------------------------------------------
 # Developer Notes (local only — not for version control)
 # ------------------------------------------------------------
-DEVNOTES.txt
-
+DEVNOTES.md
 
 # ------------------------------------------------------------
 # Personal / Reference Files
 # ------------------------------------------------------------
 LORE.pdf
-.openclaude-profile.json
-CLAUDE.md
+AGENTS.md

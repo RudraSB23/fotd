@@ -1,6 +1,6 @@
 {
   "debug": {
-    "test_mode": "node0x2_ava_intro",
+    "test_mode": false,
     "skip_startup": true
   },
   "display": {

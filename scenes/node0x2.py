@@ -1,18 +1,21 @@
-import time
 import curses
+import time
 
 from engine.core.audio import AudioManager
+from engine.core.save_manager import SaveManager
+from engine.core.state_manager import GameState
 from engine.ui.console_effects import (
     Colors,
     clear_terminal,
     echo_line,
+    full_screen_glitch,
+    print_centered,
     print_colored,
+    print_glitch,
     print_typing,
 )
 from engine.ui.elements import ChoiceMenu, TimedPuzzle
-from engine.core.save_manager import SaveManager
-from engine.core.state_manager import GameState
-from engine.ui.console_effects import full_screen_glitch, print_centered, print_glitch
+
 from .base_scene import BaseScene
 
 audio = AudioManager()
@@ -21,21 +24,39 @@ audio = AudioManager()
 class Scene2Ava(BaseScene):
     def run(self, stdscr, game_state: GameState, getch_func=None) -> str:
         SaveManager.save_game(game_state, "node0x2_ava_intro")
-        
+
         clear_terminal(stdscr)
         audio.play_sound("beep.mp3")
 
         for i in range(20):
-            print_glitch("<<< ENTERING NODE 0x2: FRAGMENT ALPHA >>>", base_color=Colors.BOLD_GREEN, glitch_color=True, stdscr=stdscr, getch_func=getch_func, center=True, intensity=1 - (i * 0.05))
+            print_glitch(
+                "<<< ENTERING NODE 0x2: FRAGMENT ALPHA >>>",
+                base_color=Colors.BOLD_GREEN,
+                glitch_color=True,
+                stdscr=stdscr,
+                getch_func=getch_func,
+                center=True,
+                intensity=1 - (i * 0.05),
+            )
             time.sleep(0.05)
         clear_terminal(stdscr)
-        print_centered("<<< ENTERING NODE 0x2: FRAGMENT ALPHA >>>", color=Colors.BOLD_GREEN, stdscr=stdscr, offset=-1)
+        print_centered(
+            "<<< ENTERING NODE 0x2: FRAGMENT ALPHA >>>",
+            color=Colors.BOLD_GREEN,
+            stdscr=stdscr,
+            offset=-1,
+        )
         time.sleep(1.0)
         clear_terminal(stdscr)
         time.sleep(1.0)
 
         print_typing(
-            "The scenery shifts. ", 0.04, Colors.BOLD_BLACK, stdscr=stdscr, end="", getch_func=getch_func
+            "The scenery shifts. ",
+            0.04,
+            Colors.BOLD_BLACK,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
         )
         time.sleep(0.4)
         print_typing(
@@ -43,7 +64,7 @@ class Scene2Ava(BaseScene):
             0.04,
             Colors.BOLD_BLACK,
             stdscr=stdscr,
-            getch_func=getch_func
+            getch_func=getch_func,
         )
         time.sleep(0.8)
         print_typing(
@@ -51,11 +72,17 @@ class Scene2Ava(BaseScene):
             0.04,
             Colors.BOLD_BLACK,
             stdscr=stdscr,
-            getch_func=getch_func
+            getch_func=getch_func,
         )
         time.sleep(1.2)
 
-        echo_line("\n...Ava?...\n", 0.06, Colors.BOLD_MAGENTA, stdscr=stdscr, getch_func=getch_func)
+        echo_line(
+            "\n...Ava?...\n",
+            0.06,
+            Colors.BOLD_MAGENTA,
+            stdscr=stdscr,
+            getch_func=getch_func,
+        )
         time.sleep(0.5)
 
         print_typing(
@@ -64,26 +91,51 @@ class Scene2Ava(BaseScene):
             Colors.BOLD_BLACK,
             stdscr=stdscr,
             end="",
-            getch_func=getch_func
+            getch_func=getch_func,
         )
         print_typing(
             "She looks at you with eyes that aren't quite aligned.",
             0.04,
             Colors.BOLD_BLACK,
             stdscr=stdscr,
-            getch_func=getch_func
+            getch_func=getch_func,
         )
         time.sleep(1)
 
-        print_typing("\nIs... ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
+        print_typing(
+            "\nIs... ",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
+        )
         time.sleep(0.5)
         print_typing(
-            "is someone there? ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func
+            "is someone there? ",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
         )
         time.sleep(0.75)
-        print_typing("The Lattice... ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
+        print_typing(
+            "The Lattice... ",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
+        )
         time.sleep(0.5)
-        print_typing("it feels so empty today.", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, getch_func=getch_func)
+        print_typing(
+            "it feels so empty today.",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            getch_func=getch_func,
+        )
         time.sleep(1.5)
 
         menu = ChoiceMenu(
@@ -98,23 +150,56 @@ class Scene2Ava(BaseScene):
         choice = menu.display(stdscr, getch_func=getch_func)
 
         if choice == 0:
-            print_typing("\nCaretaker? ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
-            time.sleep(0.75)
             print_typing(
-                "I remember that word. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func
+                "\nCaretaker? ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
             )
             time.sleep(0.75)
             print_typing(
-                "It sounded... ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func
+                "I remember that word. ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
+            )
+            time.sleep(0.75)
+            print_typing(
+                "It sounded... ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
             )
             time.sleep(0.5)
-            print_typing("safe. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
+            print_typing(
+                "safe. ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
+            )
             time.sleep(0.75)
-            print_typing("Once.", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, getch_func=getch_func)
+            print_typing(
+                "Once.", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, getch_func=getch_func
+            )
             game_state.apply_effect("stability+1")
             game_state.add_fragment("AvaMemory")
         elif choice == 1:
-            print_typing("\nFragment? ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
+            print_typing(
+                "\nFragment? ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
+            )
             time.sleep(0.75)
             print_typing(
                 "Her static ripples harshly. ",
@@ -122,14 +207,30 @@ class Scene2Ava(BaseScene):
                 Colors.BOLD_CYAN,
                 stdscr=stdscr,
                 end="",
-                getch_func=getch_func
+                getch_func=getch_func,
             )
             time.sleep(0.75)
-            print_typing("I am... ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
+            print_typing(
+                "I am... ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
+            )
             time.sleep(0.5)
-            print_typing("I was... ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
+            print_typing(
+                "I was... ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
+            )
             time.sleep(0.5)
-            print_typing("I...", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, getch_func=getch_func)
+            print_typing(
+                "I...", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, getch_func=getch_func
+            )
             time.sleep(1)
             print_typing(
                 "\nYou speak like the Architect. ",
@@ -137,15 +238,34 @@ class Scene2Ava(BaseScene):
                 Colors.BOLD_CYAN,
                 stdscr=stdscr,
                 end="",
-                getch_func=getch_func
+                getch_func=getch_func,
             )
             time.sleep(0.75)
-            print_typing("Cold. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
-            time.sleep(0.75)
-            print_typing("Calculating. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
+            print_typing(
+                "Cold. ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
+            )
             time.sleep(0.75)
             print_typing(
-                "But you're here. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func
+                "Calculating. ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
+            )
+            time.sleep(0.75)
+            print_typing(
+                "But you're here. ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
             )
             time.sleep(0.75)
             print_typing(
@@ -154,24 +274,42 @@ class Scene2Ava(BaseScene):
                 Colors.BOLD_CYAN,
                 stdscr=stdscr,
                 end="",
-                getch_func=getch_func
+                getch_func=getch_func,
             )
             time.sleep(0.4)
-            print_typing("doesn't it?", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, getch_func=getch_func)
+            print_typing(
+                "doesn't it?",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                getch_func=getch_func,
+            )
             game_state.apply_effect("corruption+1")
         else:
-            print_typing("\nHello? ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
+            print_typing(
+                "\nHello? ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
+            )
             time.sleep(0.75)
             print_typing(
                 "No one answers but the hum of the walls.",
                 0.04,
                 Colors.BOLD_CYAN,
                 stdscr=stdscr,
-                getch_func=getch_func
+                getch_func=getch_func,
             )
             time.sleep(1)
             print_typing(
-                "\nThe silence... ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func
+                "\nThe silence... ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
             )
             time.sleep(0.5)
             print_typing(
@@ -179,29 +317,80 @@ class Scene2Ava(BaseScene):
                 0.04,
                 Colors.BOLD_CYAN,
                 stdscr=stdscr,
-                getch_func=getch_func
+                getch_func=getch_func,
             )
 
         time.sleep(1.2)
-        print_typing("\nWait... ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
+        print_typing(
+            "\nWait... ",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
+        )
         time.sleep(0.5)
         print_typing(
-            "you aren't one of them. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func
+            "you aren't one of them. ",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
         )
-        time.sleep(0.75)
-        print_typing("You're... ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
-        time.sleep(0.5)
-        print_typing("whole. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
-        time.sleep(0.75)
-        print_typing("Mostly. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
-        time.sleep(0.75)
-        print_typing("I was Ava. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
         time.sleep(0.75)
         print_typing(
-            "0x41 0x76 0x61. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func
+            "You're... ",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
+        )
+        time.sleep(0.5)
+        print_typing(
+            "whole. ",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
         )
         time.sleep(0.75)
-        print_typing("Before the bleed started.", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, getch_func=getch_func)
+        print_typing(
+            "Mostly. ",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
+        )
+        time.sleep(0.75)
+        print_typing(
+            "I was Ava. ",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
+        )
+        time.sleep(0.75)
+        print_typing(
+            "0x41 0x76 0x61. ",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
+        )
+        time.sleep(0.75)
+        print_typing(
+            "Before the bleed started.",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            getch_func=getch_func,
+        )
         time.sleep(1.2)
 
         print_typing(
@@ -210,7 +399,7 @@ class Scene2Ava(BaseScene):
             Colors.BOLD_CYAN,
             stdscr=stdscr,
             end="",
-            getch_func=getch_func
+            getch_func=getch_func,
         )
         time.sleep(0.75)
         print_typing(
@@ -219,7 +408,7 @@ class Scene2Ava(BaseScene):
             Colors.BOLD_CYAN,
             stdscr=stdscr,
             end="",
-            getch_func=getch_func
+            getch_func=getch_func,
         )
         time.sleep(0.5)
         print_typing(
@@ -228,11 +417,16 @@ class Scene2Ava(BaseScene):
             Colors.BOLD_CYAN,
             stdscr=stdscr,
             end="",
-            getch_func=getch_func
+            getch_func=getch_func,
         )
         time.sleep(0.75)
         print_typing(
-            "\nIn the Lattice, ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func
+            "\nIn the Lattice, ",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
         )
         time.sleep(0.4)
         print_typing(
@@ -240,7 +434,7 @@ class Scene2Ava(BaseScene):
             0.04,
             Colors.BOLD_CYAN,
             stdscr=stdscr,
-            getch_func=getch_func
+            getch_func=getch_func,
         )
 
         time.sleep(2)
@@ -248,18 +442,49 @@ class Scene2Ava(BaseScene):
         return self.puzzle_tutorial(stdscr, game_state, getch_func=getch_func)
 
     def puzzle_tutorial(self, stdscr, game_state: GameState, getch_func=None) -> str:
-        print_typing("\nListen, ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
-        time.sleep(0.4)
-        print_typing("Caretaker. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
-        time.sleep(0.75)
         print_typing(
-            "The Lattice is collapsing. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func
+            "\nListen, ",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
+        )
+        time.sleep(0.4)
+        print_typing(
+            "Caretaker. ",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
         )
         time.sleep(0.75)
-        print_typing("\nTo stay here, ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
+        print_typing(
+            "The Lattice is collapsing. ",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
+        )
+        time.sleep(0.75)
+        print_typing(
+            "\nTo stay here, ",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
+        )
         time.sleep(0.4)
         print_typing(
-            "to reach the Archive, ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func
+            "to reach the Archive, ",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
         )
         time.sleep(0.4)
         print_typing(
@@ -267,7 +492,7 @@ class Scene2Ava(BaseScene):
             0.04,
             Colors.BOLD_CYAN,
             stdscr=stdscr,
-            getch_func=getch_func
+            getch_func=getch_func,
         )
         time.sleep(1.5)
 
@@ -277,15 +502,25 @@ class Scene2Ava(BaseScene):
             Colors.BOLD_CYAN,
             stdscr=stdscr,
             end="",
-            getch_func=getch_func
+            getch_func=getch_func,
         )
         time.sleep(0.75)
         print_typing(
-            "Look at the console. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func
+            "Look at the console. ",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
         )
         time.sleep(0.75)
         print_typing(
-            "It's scrambled code. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func
+            "It's scrambled code. ",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            end="",
+            getch_func=getch_func,
         )
         time.sleep(0.75)
         print_typing(
@@ -294,11 +529,15 @@ class Scene2Ava(BaseScene):
             Colors.BOLD_CYAN,
             stdscr=stdscr,
             end="",
-            getch_func=getch_func
+            getch_func=getch_func,
         )
         time.sleep(0.4)
         print_typing(
-            "or the corruption will spread.", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, getch_func=getch_func
+            "or the corruption will spread.",
+            0.04,
+            Colors.BOLD_CYAN,
+            stdscr=stdscr,
+            getch_func=getch_func,
         )
         time.sleep(1.5)
 
@@ -311,7 +550,8 @@ class Scene2Ava(BaseScene):
         while True:
             getch = getch_func or stdscr.getch
             key = getch()
-            if key == -999: return -999
+            if key == -999:
+                return -999
             if key in [10, 13]:
                 break
 
@@ -319,36 +559,77 @@ class Scene2Ava(BaseScene):
         success = puzzle.display(stdscr, getch_func=getch_func)
 
         if success:
-            print_typing("Good. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
+            print_typing(
+                "Good. ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
+            )
             time.sleep(0.75)
-            print_typing("Fast. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
+            print_typing(
+                "Fast. ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
+            )
             time.sleep(0.75)
-            print_typing("Very fast. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func)
+            print_typing(
+                "Very fast. ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
+            )
             time.sleep(0.75)
             print_typing(
                 "That's how we stay alive in here.",
                 0.04,
                 Colors.BOLD_CYAN,
                 stdscr=stdscr,
-                getch_func=getch_func
+                getch_func=getch_func,
             )
             game_state.apply_effect("stability+1")
             game_state.puzzles_solved += 1
         else:
             print_typing(
-                "\nToo slow... ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func
+                "\nToo slow... ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
             )
             time.sleep(0.5)
             print_typing(
-                "the static... ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func
+                "the static... ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
             )
             time.sleep(0.5)
             print_typing(
-                "it's getting louder. ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func
+                "it's getting louder. ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
             )
             time.sleep(0.75)
             print_typing(
-                "\nBe careful, ", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, end="", getch_func=getch_func
+                "\nBe careful, ",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                end="",
+                getch_func=getch_func,
             )
             time.sleep(0.4)
             print_typing(
@@ -357,11 +638,15 @@ class Scene2Ava(BaseScene):
                 Colors.BOLD_CYAN,
                 stdscr=stdscr,
                 end="",
-                getch_func=getch_func
+                getch_func=getch_func,
             )
             time.sleep(0.75)
             print_typing(
-                "A whisper in the dark.", 0.04, Colors.BOLD_CYAN, stdscr=stdscr, getch_func=getch_func
+                "A whisper in the dark.",
+                0.04,
+                Colors.BOLD_CYAN,
+                stdscr=stdscr,
+                getch_func=getch_func,
             )
             game_state.apply_effect("corruption+1")
             game_state.puzzles_failed += 1
@@ -372,7 +657,7 @@ class Scene2Ava(BaseScene):
             0.04,
             Colors.BOLD_BLACK,
             stdscr=stdscr,
-            getch_func=getch_func
+            getch_func=getch_func,
         )
         time.sleep(1)
 
@@ -381,7 +666,7 @@ class Scene2Ava(BaseScene):
             0.04,
             Colors.BOLD_MAGENTA,
             stdscr=stdscr,
-            getch_func=getch_func
+            getch_func=getch_func,
         )
 
         time.sleep(2)
