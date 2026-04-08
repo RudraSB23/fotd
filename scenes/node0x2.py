@@ -14,7 +14,7 @@ from engine.ui.console_effects import (
     print_glitch,
     print_typing,
 )
-from engine.ui.elements import ChoiceMenu, TimedPuzzle
+from engine.ui.elements import ChoiceMenu, TimedPuzzle, MessageBox
 
 from .base_scene import BaseScene
 
@@ -540,6 +540,18 @@ class Scene2Ava(BaseScene):
             getch_func=getch_func,
         )
         time.sleep(1.5)
+
+        # Tutorial message box explaining the puzzle
+        tutorial_msg = [
+            "STABILIZATION PROTOCOL ACTIVE",
+            "",
+            "The console displays corrupted data that must be corrected.",
+            "Type the highlighted word exactly as shown to stabilize the node.",
+            "Leetscape substitutions may appear (e.g., 'E' → '3', 'A' → '@').",
+            "You have limited time before corruption spreads.",
+        ]
+        messagebox = MessageBox(tutorial_msg, title="TUTORIAL", border_color=Colors.BOLD_CYAN)
+        messagebox.display(stdscr, getch_func=getch_func)
 
         print_colored("", stdscr=stdscr)
         print_colored(
