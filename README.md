@@ -29,7 +29,7 @@ Every decision shifts your **Stability ↔ Corruption** balance, unlocking 3 dis
 
 > [!NOTE]
 > **🚧 Work in Progress** — This game is actively being developed. Nodes 0x1 and 0x2 are playable; Nodes 0x3 through 0x9 are planned or partially scripted. Expect rough edges, missing content, and frequent updates.
-
+> **🚫 Outdated README.md** — This README is outdated with respect to the current game structure and repo config.
 ---
 
 ## ✨ Features
