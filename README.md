@@ -171,6 +171,6 @@ Unlicensed prototype. Contact for commercial inquiries.
 
 [![GitHub](https://img.shields.io/badge/GitHub-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/RudraSB23/fotd)
 
-"I built a heaven for ghosts, and I became one of them. - Architect"\_
+"I built a heaven for ghosts, and I became one of them." - Architect
 
 </div>
