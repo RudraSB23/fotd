@@ -672,8 +672,34 @@ class Scene2Ava(BaseScene):
         time.sleep(2)
 
         clear_terminal(stdscr)
+        for i in range(20):
+            clear_terminal(stdscr)
+            print_centered(
+                "<<< EXITING NODE 0x2: FRAGMENT ALPHA >>>",
+                color=Colors.BOLD_BLACK,
+                stdscr=stdscr,
+                offset=-1,
+            )
 
-        print_colored("<<< EXITING NODE 0x2 >>>\n", Colors.BOLD_BLACK, stdscr=stdscr)
-        time.sleep(1)
+            filled = int((i / 19) * 20)
+            bar = "[" + "█" * filled + "░" * (20 - filled) + "]"
+            print_centered(bar, color=Colors.BOLD_BLACK, stdscr=stdscr, offset=1)
+
+            time.sleep(0.08)
+
+        # Hold resolved state
+        clear_terminal(stdscr)
+        print_centered(
+            "<<< EXITING NODE 0x2: FRAGMENT ALPHA >>>",
+            color=Colors.BOLD_BLACK,
+            stdscr=stdscr,
+            offset=-1,
+        )
+        print_centered(
+            "[████████████████████]", color=Colors.BOLD_BLACK, stdscr=stdscr, offset=1
+        )
+
+        time.sleep(0.8)
+        clear_terminal(stdscr)
 
         return "node0x3_archive"

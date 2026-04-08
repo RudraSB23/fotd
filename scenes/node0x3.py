@@ -1,4 +1,3 @@
-import curses
 import time
 
 from engine.core.audio import AudioManager
@@ -35,6 +34,7 @@ class Scene3Archive(BaseScene):
                 intensity=1 - (i * 0.05),
             )
             time.sleep(0.05)
+
         clear_terminal(stdscr)
         print_centered(
             "<<< ENTERING NODE 0x3: THE ARCHIVE >>>",
@@ -45,5 +45,36 @@ class Scene3Archive(BaseScene):
         time.sleep(1.0)
         clear_terminal(stdscr)
         time.sleep(1.0)
+
+        clear_terminal(stdscr)
+        for i in range(20):
+            clear_terminal(stdscr)
+            print_centered(
+                "<<< EXITING NODE 0x3: THE ARCHIVE >>>",
+                color=Colors.BOLD_BLACK,
+                stdscr=stdscr,
+                offset=-1,
+            )
+
+            filled = int((i / 19) * 20)
+            bar = "[" + "█" * filled + "░" * (20 - filled) + "]"
+            print_centered(bar, color=Colors.BOLD_BLACK, stdscr=stdscr, offset=1)
+
+            time.sleep(0.08)
+
+        # Hold resolved state
+        clear_terminal(stdscr)
+        print_centered(
+            "<<< EXITING NODE 0x3: THE ARCHIVE >>>",
+            color=Colors.BOLD_BLACK,
+            stdscr=stdscr,
+            offset=-1,
+        )
+        print_centered(
+            "[████████████████████]", color=Colors.BOLD_BLACK, stdscr=stdscr, offset=1
+        )
+
+        time.sleep(0.8)
+        clear_terminal(stdscr)
 
         return "node0x4_elias"

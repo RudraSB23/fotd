@@ -46,4 +46,66 @@ class Scene6Synch(BaseScene):
         clear_terminal(stdscr)
         time.sleep(1.0)
 
+        clear_terminal(stdscr)
+        for i in range(20):
+            clear_terminal(stdscr)
+            print_centered(
+                "<<< EXITING NODE 0x6: SYNCH HARMONY >>>",
+                color=Colors.BOLD_BLACK,
+                stdscr=stdscr,
+                offset=-1,
+            )
+
+            filled = int((i / 19) * 20)
+            bar = "[" + "█" * filled + "░" * (20 - filled) + "]"
+            print_centered(bar, color=Colors.BOLD_BLACK, stdscr=stdscr, offset=1)
+
+            time.sleep(0.08)
+
+        # Hold resolved state
+        clear_terminal(stdscr)
+        print_centered(
+            "<<< EXITING NODE 0x6: SYNCH HARMONY >>>",
+            color=Colors.BOLD_BLACK,
+            stdscr=stdscr,
+            offset=-1,
+        )
+        print_centered(
+            "[████████████████████]", color=Colors.BOLD_BLACK, stdscr=stdscr, offset=1
+        )
+
+        time.sleep(0.8)
+        clear_terminal(stdscr)
+
+        clear_terminal(stdscr)
+        for i in range(20):
+            clear_terminal(stdscr)
+            print_centered(
+                "<<< EXITING NODE 0x6: SYNCH HARMONY >>>",
+                color=Colors.BOLD_BLACK,
+                stdscr=stdscr,
+                offset=-1,
+            )
+
+            filled = int((i / 19) * 20)
+            bar = "[" + "█" * filled + "░" * (20 - filled) + "]"
+            print_centered(bar, color=Colors.BOLD_BLACK, stdscr=stdscr, offset=1)
+
+            time.sleep(0.08)
+
+        # Hold resolved state
+        clear_terminal(stdscr)
+        print_centered(
+            "<<< EXITING NODE 0x6: SYNCH HARMONY >>>",
+            color=Colors.BOLD_BLACK,
+            stdscr=stdscr,
+            offset=-1,
+        )
+        print_centered(
+            "[████████████████████]", color=Colors.BOLD_BLACK, stdscr=stdscr, offset=1
+        )
+
+        time.sleep(0.8)
+        clear_terminal(stdscr)
+
         return "node0x7_lyra"
