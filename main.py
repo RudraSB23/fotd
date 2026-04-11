@@ -4,18 +4,11 @@ import os
 import random
 import time
 
-from scenes.intro_sequence import (
-    corruption_flash,
-    display_success_message,
-    fake_error_flood,
-    initiating_sequence,
-    memory_load_prompt,
-    onboarding,
-    system_reboot,
-)
 from engine.core.assets import load_ascii_art, load_multiple_ascii_art
 from engine.core.audio import AudioManager
 from engine.core.config import config
+from engine.core.save_manager import SaveManager
+from engine.core.state_manager import GameState
 from engine.ui.console_effects import (
     Colors,
     clear_terminal,
@@ -25,8 +18,15 @@ from engine.ui.console_effects import (
 )
 from engine.ui.elements import ChoiceMenu, MessageBox
 from engine.ui.menu import GrubMenu
-from engine.core.save_manager import SaveManager
-from engine.core.state_manager import GameState
+from scenes.intro_sequence import (
+    corruption_flash,
+    display_success_message,
+    initiating_sequence,
+    loading_bar,
+    memory_load_prompt,
+    onboarding,
+    system_reboot,
+)
 from scenes.registry import get_scene
 
 audio = AudioManager()
@@ -59,18 +59,21 @@ def getch_with_pause(stdscr, game_state, audio, current_slot, current_scene_id):
     Wrapper for stdscr.getch() that intercepts ESC to show the pause menu.
     """
     from engine.pause_menu import show_pause_menu
-    
+
     while True:
         ch = stdscr.getch()
         if ch == 27:  # ESC key
             stdscr.nodelay(False)
-            result = show_pause_menu(stdscr, game_state, audio, current_slot, current_scene_id)
+            result = show_pause_menu(
+                stdscr, game_state, audio, current_slot, current_scene_id
+            )
             stdscr.nodelay(True)
             if result == -999:
                 return -999  # Signal to quit to menu
             # If resumed, loop back to wait for a valid game key
             continue
         return ch
+
 
 def run_game(stdscr):
     # setup curses screen
@@ -87,10 +90,12 @@ def run_game(stdscr):
 
     # TEST Bypass
     if config.TEST:
-        game_state.player_name = "TEST"
+        # TEST mode doesn't use player name anymore
+        pass
 
         if config.TEST == "system_reboot":
             from scenes.intro_sequence import system_reboot
+
             msg = [
                 "",
                 ("TEST MODE STORY BYPASS", Colors.BOLD_RED),
@@ -98,7 +103,9 @@ def run_game(stdscr):
                 ("Continuing from:", Colors.BOLD_WHITE),
                 (f"[{config.TEST}]", Colors.BOLD_WHITE),
             ]
-            MessageBox(msg, title="ADMIN OVERRIDE", border_color=Colors.BOLD_MAGENTA).display(stdscr, duration=1.0)
+            MessageBox(
+                msg, title="ADMIN OVERRIDE", border_color=Colors.BOLD_MAGENTA
+            ).display(stdscr, duration=1.0)
             time.sleep(0.5)
             system_reboot(stdscr, game_state)
             return
@@ -112,7 +119,9 @@ def run_game(stdscr):
                 ("Continuing from:", Colors.BOLD_WHITE),
                 (f"[{config.TEST}]", Colors.BOLD_WHITE),
             ]
-            MessageBox(msg, title="ADMIN OVERRIDE", border_color=Colors.BOLD_MAGENTA).display(stdscr, duration=1.0)
+            MessageBox(
+                msg, title="ADMIN OVERRIDE", border_color=Colors.BOLD_MAGENTA
+            ).display(stdscr, duration=1.0)
             audio.stop_music()
             time.sleep(1)
 
@@ -122,7 +131,9 @@ def run_game(stdscr):
                 scene = get_scene(current_scene_id)
 
                 def getch_wrapper():
-                    return getch_with_pause(stdscr, game_state, audio, current_slot, current_scene_id)
+                    return getch_with_pause(
+                        stdscr, game_state, audio, current_slot, current_scene_id
+                    )
 
                 next_scene_id = scene.run(stdscr, game_state, getch_func=getch_wrapper)
                 if next_scene_id == -999:
@@ -168,7 +179,7 @@ def run_game(stdscr):
             clear_terminal(stdscr)
 
             if choice_index == 0:  # Continue
-                from scenes.intro_sequence import intro_systems_rebooting_bar
+                from scenes.intro_sequence import loading_bar
                 from scenes.registry import get_scene_name
 
                 saves = SaveManager.get_all_saves(6)
@@ -180,7 +191,7 @@ def run_game(stdscr):
                         state = save["state"]
                         scene_name = get_scene_name(save["scene_id"])
                         choices.append(
-                            f"Slot {i}: {state.get('player_name', 'Unknown')} [{scene_name}]"
+                            f"Slot {i}: {len(state.get('identity_fragments', []))} fragments [{scene_name}]"
                         )
                     else:
                         choices.append(f"Slot {i}: [ EMPTY ]")
@@ -191,14 +202,14 @@ def run_game(stdscr):
                         ("NO SAVA DATA FOUND", Colors.BOLD_RED),
                         "",
                         "No encrypted save data detected.",
-                        "All save files are empty.",
+                        "The save file is empty.",
                         "",
                         ("Returning to main menu...", Colors.BOLD_WHITE),
                     ]
                     error_box = MessageBox(
                         error_msg, title="NO SAVES FOUND", border_color=Colors.BOLD_RED
                     )
-                    error_box.display(stdscr, duration=2.5)
+                    error_box.display(stdscr, duration=2)
                     clear_terminal(stdscr)
                     continue
 
@@ -236,42 +247,22 @@ def run_game(stdscr):
 
                 # Loading cinematic
                 clear_terminal(stdscr)
-                msg = [
-                    (
-                        f"RECOVERING MEMORY FROM SLOT {current_slot}...",
-                        Colors.BOLD_CYAN,
-                    )
-                ]
-                box = MessageBox(
-                    msg, title="SYSTEM SCAN", border_color=Colors.BOLD_CYAN
-                )
-                box.display(stdscr, duration=1.0)
-
-                clear_terminal(stdscr)
-                intro_systems_rebooting_bar(
-                    stdscr, duration=1.5, length=40, color=Colors.BOLD_CYAN
+                loading_bar(
+                    stdscr,
+                    duration=1,
+                    length=40,
+                    color=Colors.BOLD_CYAN,
+                    title="LOADING SAVE",
                 )
                 clear_terminal(stdscr)
 
                 game_state = GameState.from_snapshot(save_data["state"])
                 current_scene_id = save_data["scene_id"]
                 scene_name = get_scene_name(current_scene_id)
-
-                success_msg = [
-                    (f"MEMORY RESTORED: {scene_name}", Colors.BOLD_GREEN),
-                    "",
-                    f"Subject: {game_state.player_name}",
-                    ("Re-aligning consciousness...", Colors.BOLD_WHITE),
-                ]
-                box = MessageBox(
-                    success_msg, title="SYNC SUCCESS", border_color=Colors.BOLD_GREEN
-                )
-                box.display(stdscr, duration=2.5)
-                audio.stop_music()
                 break  # Start scene loop
 
             elif choice_index == 1:  # New Game
-                from scenes.intro_sequence import intro_systems_rebooting_bar
+                from scenes.intro_sequence import loading_bar
 
                 saves = SaveManager.get_all_saves(6)
                 choices = []
@@ -279,7 +270,7 @@ def run_game(stdscr):
                     if save:
                         state = save["state"]
                         choices.append(
-                            f"Slot {i}: {state.get('player_name', 'Unknown')} [IN USE]"
+                            f"Slot {i}: {len(state.get('identity_fragments', []))} fragments [IN USE]"
                         )
                     else:
                         choices.append(f"Slot {i}: [ EMPTY ]")
@@ -326,22 +317,27 @@ def run_game(stdscr):
                 game_state = GameState()  # Reset local state
                 audio.stop_music(fadeout_ms=1000)
                 clear_terminal(stdscr)
-                intro_systems_rebooting_bar(
-                    stdscr, duration=1.5, length=40, color=Colors.BOLD_MAGENTA
+                loading_bar(
+                    stdscr,
+                    duration=1.5,
+                    length=40,
+                    color=Colors.BOLD_MAGENTA,
+                    title="NEW GAME",
                 )
                 clear_terminal(stdscr)
 
                 # Full onboarding for New Game
                 time.sleep(1)
-                
+
                 # Global pause-aware getch for the intro sequence
                 def intro_getch():
-                    return getch_with_pause(stdscr, game_state, audio, current_slot, "intro")
+                    return getch_with_pause(
+                        stdscr, game_state, audio, current_slot, "intro"
+                    )
 
                 onboarding(stdscr, getch_func=intro_getch)
                 time.sleep(1)
                 initiating_sequence(stdscr, getch_func=intro_getch)
-                fake_error_flood(stdscr, random.randint(40, 50), getch_func=intro_getch)
                 clear_terminal(stdscr)
                 display_success_message(stdscr, getch_func=intro_getch)
                 memory_load_prompt(stdscr, getch_func=intro_getch)
@@ -350,14 +346,19 @@ def run_game(stdscr):
                 for i in range(1, 4):
                     corrupt_ascii.append(load_ascii_art(f"intro_glitch_{i}.txt"))
                 corruption_flash(stdscr, corrupt_ascii)
+                
+                # Add loading screen after corruption flash
+                from scenes.intro_sequence import loading_screen
+                loading_screen(stdscr, duration=2.5)
 
                 time.sleep(2)
                 if config.TEST and config.TEST != "system_reboot":
-                    player_name = "TEST"
+                    # TEST mode doesn't use player name anymore
+                    pass
                 else:
-                    player_name = system_reboot(stdscr, game_state, getch_func=intro_getch)
+                    # system_reboot doesn't return a name anymore, just use default
+                    pass
 
-                game_state.player_name = player_name
                 current_scene_id = "scene1_identity_sequence"
                 break  # Start scene loop
 
@@ -413,7 +414,9 @@ def run_game(stdscr):
             # Create a localized wrapper that has access to all required state
             # This allows scenes/elements to trigger the pause menu without knowing about SaveManager or GameState
             def getch_wrapper():
-                return getch_with_pause(stdscr, game_state, audio, current_slot, current_scene_id)
+                return getch_with_pause(
+                    stdscr, game_state, audio, current_slot, current_scene_id
+                )
 
             # Execute the scene and get the ID of the next one
             next_scene_id = scene.run(stdscr, game_state, getch_func=getch_wrapper)
@@ -422,7 +425,7 @@ def run_game(stdscr):
                 # Quit to main menu
                 current_scene_id = None
                 clear_terminal(stdscr)
-                continue # Back to title loop
+                continue  # Back to title loop
 
             # Update current scene ID for next iteration
             current_scene_id = next_scene_id
@@ -452,11 +455,11 @@ def run_game(stdscr):
 
 
 def main_curses(stdscr):
-    from scenes.intro_sequence import logo_animation, startup_screen
     from engine.core.audio import AudioManager
     from engine.core.logger import game_logger
     from engine.ui.ui_utils import ensure_min_terminal
-    
+    from scenes.intro_sequence import logo_animation, startup_screen
+
     # IMPROVE ESC KEY RESPONSIVENESS ON WINDOWS
     try:
         curses.set_escdelay(25)
@@ -502,7 +505,9 @@ def main_curses(stdscr):
                 (disclaimer_text, Colors.WHITE, 0),
                 (prompt_text, Colors.BOLD_MAGENTA, 2.0),  # Reveal 4 seconds later
             ]
-            glitch_ascii_animation(stdscr, glitch_blocks, wait_for_key=True, justify_center=True)
+            glitch_ascii_animation(
+                stdscr, glitch_blocks, wait_for_key=True, justify_center=True
+            )
             audio.stop_music(fadeout_ms=500)
             time.sleep(1)
 

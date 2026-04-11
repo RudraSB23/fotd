@@ -11,14 +11,12 @@ audio = AudioManager()
 
 class Scene1Corridor(BaseScene):
     def run(self, stdscr, game_state: GameState, getch_func=None) -> str:
-        player_name = game_state.player_name
-        player_name = game_state.player_name
         # Save point at start of scene
         SaveManager.save_game(game_state, "scene1_identity_sequence")
         
-        # === 1. System registering name ===
+        # === 1. System registering identity ===
         audio.play_sound("beep.mp3")
-        print_colored(f"[SYS] Identity registered: {player_name}", Colors.GREEN, stdscr=stdscr)
+        print_colored("[SYS] Identity registered: Caretaker", Colors.GREEN, stdscr=stdscr)
         time.sleep(1)
         audio.play_sound("beep.mp3")
         print_colored("[WARN] Memory integrity... FRAGMENTED", Colors.RED, stdscr=stdscr)
@@ -37,7 +35,7 @@ class Scene1Corridor(BaseScene):
         audio.play_sound("scary_static.mp3", loop=True, volume=1)
         stdscr.scrollok(True)
         for i in range(750):
-            print_colored(f"...{player_name}...    ", Colors.RED, stdscr=stdscr, end="")
+            print_colored(f"...Caretaker...    ", Colors.RED, stdscr=stdscr, end="")
             time.sleep(0.0025)
         stdscr.scrollok(False)
 

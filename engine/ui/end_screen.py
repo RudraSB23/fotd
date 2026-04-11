@@ -10,7 +10,6 @@ class EndScreen:
         stats = [
             ("SESSION TERMINATED", Colors.BOLD_MAGENTA),
             "",
-            f"Subject: {self.game_state.player_name}",
             f"Final Stability: {self.game_state.stability}",
             f"Final Corruption: {self.game_state.corruption_level}",
             f"Fragments Collected: {len(self.game_state.identity_fragments)}",

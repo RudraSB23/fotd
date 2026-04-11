@@ -1,7 +1,7 @@
 {
   "debug": {
     "test_mode": false,
-    "skip_startup": false
+    "skip_startup": true
   },
   "display": {
     "typing_speed": 0.03,

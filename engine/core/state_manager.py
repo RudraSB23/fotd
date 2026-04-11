@@ -9,7 +9,6 @@ def clamp(value: int, minimum: int, maximum: int) -> int:
 
 @dataclass
 class GameState:
-    player_name: str = "Caretaker"
     identity_fragments: List[str] = field(default_factory=list)
     corruption_level: int = 0
     stability: int = 3
