@@ -28,16 +28,6 @@ INITIATION_SUCCESS_MESSAGES = [
     "[INFO] Lattice node synchronized.",
 ]
 
-INITIATION_ECHO_MESSAGES = [
-    "DO NOT PROCEED.",
-    "THE LATTICE SEES YOU.",
-    "Fragments will claim your mind.",
-    "Your actions are being recorded…",
-    "ECHOES OF THE PAST ARE WATCHING.",
-    "Reality is fracturing around you.",
-    "You should not be here.",
-]
-
 
 def render_stability_bar(state: GameState, max_level: int = 6) -> str:
     filled = "█" * state.stability
@@ -558,7 +548,7 @@ def onboarding(stdscr, getch_func=None):
     time.sleep(1.5)
 
     print_colored(
-        "\n[INPUT REQUIRED] Initiate Lattice Core [Y/Y]: ",
+        "\nInitiate Apex Lattice [ENTER]: ",
         Colors.GREEN,
         stdscr=stdscr,
         end="",
@@ -579,7 +569,7 @@ def onboarding(stdscr, getch_func=None):
 
 def initiating_sequence(stdscr, getch_func=None):
     messages = [
-        "[BOOT] Initializing Lattice Core",
+        "[BOOT] Initializing Apex Lattice",
         "[BOOT] Loading Memory Nodes",
         "[BOOT] Stabilizing Echo Channels",
         "[BOOT] Synchronizing Identity Fragments",
@@ -628,64 +618,183 @@ def memory_load_prompt(stdscr, getch_func=None):
     stdscr.nodelay(True)
 
 
-def loading_screen(stdscr, duration: float = 3.0) -> None:
-    """
-    Displays the Apex Lattice logo with a loading bar below it using existing UI utilities.
-    """
-    # Clear screen using existing utility
+def apex_lattice_boot(stdscr, getch_func=None) -> None:
+    from collections import deque
+
     clear_terminal(stdscr)
-    
-    # Load the apex lattice ASCII art
-    apex_lattice = load_ascii_art("apex_lattice.txt")
-    
-    if not apex_lattice:
-        # Fallback if file not found
-        apex_lattice = "APEX LATTICE"
-    
-    # Display the apex lattice ASCII art centered using existing utility
-    print_colored(apex_lattice, Colors.BOLD_CYAN, stdscr=stdscr)
-    
-    # Add loading text below the lattice centered using existing utility
-    print_colored("\nINITIALIZING APEX LATTICE INTERFACE", Colors.BOLD_WHITE, stdscr=stdscr)
-    
-    # Add loading bar below the text using existing utilities
-    bar_width = 40
-    
-    # Get terminal dimensions for positioning
     h, w = stdscr.getmaxyx()
-    
-    # Calculate bar position (below the centered text)
-    bar_y = h // 2 + 3  # Center + space for lattice art + text
-    bar_x = max((w - bar_width) // 2, 0)
-    
-    # Draw empty bar first using print_colored with positioning
-    empty_bar = "[" + "░" * bar_width + "]"
-    print_colored(empty_bar, Colors.BOLD_BLUE, stdscr=stdscr, y=bar_y, x=bar_x)
-    
+
+    # Load ASCII art
+    apex_art = load_ascii_art("apex_lattice.txt") or "APEX LATTICE"
+    art_lines = apex_art.splitlines()
+    art_width = max(len(l) for l in art_lines)
+    art_x = max((w - art_width) // 2, 0)
+
+    # ── Layout constants ──────────────────────────────────────────────
+    ART_HEIGHT = len(art_lines)
+    ART_GAP = 2  # blank rows between art and log box
+    LOG_HEIGHT = 8
+    LOG_WIDTH = 58
+    LOG_GAP = 2  # blank rows between log box and bar
+    BAR_LENGTH = 40
+    BAR_ROWS = 3  # top border + bar + bottom border
+
+    # Total height of the entire block
+    TOTAL_HEIGHT = ART_HEIGHT + ART_GAP + (LOG_HEIGHT + 2) + LOG_GAP + BAR_ROWS
+
+    # Vertical offset to centre the whole block
+    top_offset = max((h - TOTAL_HEIGHT) // 2, 0)
+
+    # Derive each section's Y from the same offset
+    art_y = top_offset
+    log_y = art_y + ART_HEIGHT + ART_GAP
+    bar_y = log_y + LOG_HEIGHT + 2 + LOG_GAP  # +2 for log top/bottom borders
+
+    # Horizontal centre
+    log_x = (w - LOG_WIDTH - 4) // 2
+    bar_x = (w - BAR_LENGTH - 4) // 2
+
+    # ── Draw ASCII art ────────────────────────────────────────────────
+    for i, line in enumerate(art_lines):
+        print_colored(
+            line, Colors.BOLD_CYAN, stdscr=stdscr, y=art_y + i, x=art_x, end=""
+        )
+
     stdscr.refresh()
-    
-    # Animate the loading bar
-    steps = bar_width
-    delay = duration / steps
-    
-    for i in range(steps):
-        # Fill the bar progressively
-        filled_part = "█" * (i + 1)
-        empty_part = "░" * (bar_width - (i + 1))
-        filled_bar = "[" + filled_part + empty_part + "]"
-        
-        # Update the bar at the same position using existing print_colored
-        print_colored(filled_bar, Colors.BOLD_GREEN, stdscr=stdscr, y=bar_y, x=bar_x)
-        
+    time.sleep(0.3)
+
+    # ── All log messages ──────────────────────────────────────────────
+    ALL_LOGS = [
+        ("[CORE] Booting APEX LATTICE kernel...", Colors.BOLD_GREEN),
+        ("[CORE] Mapping fragmented memory nodes...", Colors.BOLD_GREEN),
+        ("[CORE] Initialising echo resonance matrix...", Colors.BOLD_GREEN),
+        ("[CORE] Synchronising Lattice node registry...", Colors.BOLD_GREEN),
+        ("[INFO] Initialising fragment indexes...", Colors.BOLD_GREEN),
+        ("[CORE] Loading identity anchor protocols...", Colors.BOLD_GREEN),
+        ("[WARN] Identity anchor integrity: DEGRADED", Colors.BOLD_YELLOW),
+        ("[CORE] Attempting anchor stabilisation...", Colors.BOLD_GREEN),
+        ("[WARN] Corruption trace detected in sector 0x4F", Colors.BOLD_YELLOW),
+        ("[INFO] Neural interface handshake in progress...", Colors.BOLD_GREEN),
+        ("[CORE] Memory lattice partitions: MOUNTED", Colors.BOLD_GREEN),
+        ("[WARN] Anomalous signal in echo buffer — ignoring", Colors.BOLD_YELLOW),
+        ("[INFO] Observer protocol: ACTIVE", Colors.BOLD_GREEN),
+        ("[CORE] Stabilising quantum coherence layer...", Colors.BOLD_GREEN),
+        ("[ERROR] Sector 0x1A: data irrecoverable", Colors.BOLD_RED),
+        ("[CORE] Bypassing corrupted sectors...", Colors.BOLD_GREEN),
+        ("[WARN] Recursion depth limit approaching", Colors.BOLD_YELLOW),
+        ("[CORE] Echo chamber alignment: COMPLETE", Colors.BOLD_GREEN),
+        ("[INFO] User identity: UNVERIFIED", Colors.BOLD_YELLOW),
+        ("[CORE] APEX LATTICE ONLINE", Colors.BOLD_GREEN),
+    ]
+
+    # ── Draw static log box border ────────────────────────────────────
+    log_top = "╔" + "═" * (LOG_WIDTH + 2) + "╗"
+    log_blank = "║" + " " * (LOG_WIDTH + 2) + "║"
+    log_bottom = "╚" + "═" * (LOG_WIDTH + 2) + "╝"
+
+    print_colored(log_top, Colors.BOLD_CYAN, stdscr=stdscr, y=log_y, x=log_x, end="")
+    for i in range(LOG_HEIGHT):
+        print_colored(
+            log_blank, Colors.BOLD_CYAN, stdscr=stdscr, y=log_y + 1 + i, x=log_x, end=""
+        )
+    print_colored(
+        log_bottom,
+        Colors.BOLD_CYAN,
+        stdscr=stdscr,
+        y=log_y + LOG_HEIGHT + 1,
+        x=log_x,
+        end="",
+    )
+
+    # ── Draw static bar border ────────────────────────────────────────
+    bar_label = " INITIALISING "
+    bar_border_w = BAR_LENGTH + 4
+    bar_top = (
+        "╔"
+        + "═" * ((bar_border_w - len(bar_label)) // 2 - 1)
+        + bar_label
+        + "═" * ((bar_border_w - len(bar_label) + 1) // 2 - 1)
+        + "╗"
+    )
+    bar_bottom = "╚" + "═" * (bar_border_w - 2) + "╝"
+    bar_empty = ["░"] * BAR_LENGTH
+
+    print_colored(bar_top, Colors.BOLD_CYAN, stdscr=stdscr, y=bar_y, x=bar_x, end="")
+    print_colored(
+        f"  {''.join(bar_empty)}",
+        Colors.BOLD_GREEN,
+        stdscr=stdscr,
+        y=bar_y + 1,
+        x=bar_x,
+        end="",
+    )
+    print_colored(
+        bar_bottom, Colors.BOLD_CYAN, stdscr=stdscr, y=bar_y + 2, x=bar_x, end=""
+    )
+
+    stdscr.refresh()
+
+    # ── Scrolling log buffer ──────────────────────────────────────────
+    log_buffer = deque(maxlen=LOG_HEIGHT)
+    total_steps = BAR_LENGTH
+    duration = 5.0
+    step_delay = duration / total_steps
+    log_interval = max(1, total_steps // len(ALL_LOGS))
+    log_index = 0
+
+    def redraw_log():
+        lines = list(log_buffer)
+        for i in range(LOG_HEIGHT):
+            blank_row = " " * LOG_WIDTH
+            print_colored(
+                blank_row,
+                Colors.BOLD_GREEN,
+                stdscr=stdscr,
+                y=log_y + 1 + i,
+                x=log_x + 2,
+                end="",
+            )
+            if i < len(lines):
+                text, color = lines[i]
+                print_colored(
+                    text[:LOG_WIDTH],
+                    color,
+                    stdscr=stdscr,
+                    y=log_y + 1 + i,
+                    x=log_x + 2,
+                    end="",
+                )
         stdscr.refresh()
-        time.sleep(delay)
-    
-    # Brief pause at completion
-    time.sleep(0.5)
 
+    # ── Main loop: fill bar + emit logs ──────────────────────────────
+    for step in range(total_steps):
+        if step > 0 and step % log_interval == 0 and log_index < len(ALL_LOGS):
+            log_buffer.append(ALL_LOGS[log_index])
+            log_index += 1
+            redraw_log()
 
-def corruption_flash(stdscr, ascii_art_blocks: list[str] | None = None) -> None:
-    full_screen_glitch(stdscr, ascii_art_blocks=ascii_art_blocks)
+        bar_empty[step] = "█"
+        print_colored(
+            f"  {''.join(bar_empty)}",
+            Colors.BOLD_GREEN,
+            stdscr=stdscr,
+            y=bar_y + 1,
+            x=bar_x,
+            end="",
+        )
+        stdscr.refresh()
+        time.sleep(step_delay)
+
+    # Flush remaining logs after bar completes
+    while log_index < len(ALL_LOGS):
+        log_buffer.append(ALL_LOGS[log_index])
+        log_index += 1
+        redraw_log()
+        time.sleep(0.08)
+
+    time.sleep(0.6)
+    clear_terminal(stdscr)
+    time.sleep(0.2)
 
 
 def system_reboot(stdscr, game_state: GameState, getch_func=None) -> str:

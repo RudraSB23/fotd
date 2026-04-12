@@ -1,10 +1,8 @@
 import curses
-import getpass
 import os
-import random
 import time
 
-from engine.core.assets import load_ascii_art, load_multiple_ascii_art
+from engine.core.assets import load_ascii_art
 from engine.core.audio import AudioManager
 from engine.core.config import config
 from engine.core.save_manager import SaveManager
@@ -19,13 +17,13 @@ from engine.ui.console_effects import (
 from engine.ui.elements import ChoiceMenu, MessageBox
 from engine.ui.menu import GrubMenu
 from scenes.intro_sequence import (
-    corruption_flash,
+    apex_lattice_boot,
     display_success_message,
+    full_screen_glitch,
     initiating_sequence,
     loading_bar,
     memory_load_prompt,
     onboarding,
-    system_reboot,
 )
 from scenes.registry import get_scene
 
@@ -338,18 +336,19 @@ def run_game(stdscr):
                 onboarding(stdscr, getch_func=intro_getch)
                 time.sleep(1)
                 initiating_sequence(stdscr, getch_func=intro_getch)
-                clear_terminal(stdscr)
                 display_success_message(stdscr, getch_func=intro_getch)
                 memory_load_prompt(stdscr, getch_func=intro_getch)
 
                 corrupt_ascii = []
                 for i in range(1, 4):
                     corrupt_ascii.append(load_ascii_art(f"intro_glitch_{i}.txt"))
-                corruption_flash(stdscr, corrupt_ascii)
-                
+
+                full_screen_glitch(stdscr, ascii_art_blocks=corrupt_ascii)
+
+                time.sleep(1.5)
+
                 # Add loading screen after corruption flash
-                from scenes.intro_sequence import loading_screen
-                loading_screen(stdscr, duration=2.5)
+                apex_lattice_boot(stdscr)
 
                 time.sleep(2)
                 if config.TEST and config.TEST != "system_reboot":
